@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo FrescoPlan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Idea: un teléfono simulado centrado (pantalla completa en celular); tarjetas grandes y botones táctiles de 48 px para un comerciante que atiende de pie. */
+  --verde-900:#17402f;
+  --verde-600:#2b7a58;
+  --verde-100:#e4f2ea;
+  --fondo:#f3f5f2;
+  --tinta:#17211c;
+  --gris:#5d6b64;
+  --linea:#dfe5e0;
+  --blanco:#ffffff;
+  --ambar:#9a4a06;
+  --ambar-bg:#fff1d6;
+  --ambar-solid:#f59e0b;
+  --rojo:#b8222f;
+  --rojo-bg:#fde8ea;
+  --rojo-solid:#e0384a;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:#d9dfdb;font-family:var(--f-body);color:var(--tinta);font-size:16px;line-height:1.35;-webkit-text-size-adjust:100%}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+select,input{font-family:inherit;font-size:16px;color:var(--tinta)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #1a73e8;outline-offset:2px}
+
+.stage{height:100%;display:flex;align-items:center;justify-content:center;padding:16px}
+.phone{position:relative;width:390px;height:min(840px,100%);background:var(--fondo);border-radius:38px;border:9px solid #101614;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden;display:flex;flex-direction:column}
+@media (max-width:480px){
+  .stage{padding:0}
+  .phone{width:100%;height:100%;border:0;border-radius:0;box-shadow:none}
+}
+
+/* Encabezado */
+.top{background:var(--verde-900);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:11px;background:#e8f5ee;display:grid;place-items:center;flex:none}
+.brand{flex:1;min-width:0}
+.brand b{font-size:18px;font-weight:800;letter-spacing:.1px}
+.pill{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:6px;background:var(--ambar-solid);color:#3a2300;font-size:10px;font-weight:800;vertical-align:2px}
+.brand b{white-space:nowrap}
+.brand small{display:block;font-size:12.5px;color:#c6ddd1;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-btn{display:flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:14px;white-space:nowrap;flex:none}
+
+/* Pantallas */
+.screen{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.h1{margin:0;font-size:21px;font-weight:800}
+.sub{margin:2px 0 0;color:var(--gris);font-size:14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card{background:var(--blanco);border:1px solid var(--linea);border-radius:16px;padding:14px}
+.chip-count{padding:4px 10px;border-radius:99px;background:var(--verde-100);color:var(--verde-900);font-weight:700;font-size:13px;white-space:nowrap}
+
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:1px solid var(--linea);background:var(--blanco);font-weight:700}
+.btn.primary{background:var(--verde-600);border-color:var(--verde-600);color:#fff}
+.btn.dark{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.btn.full{width:100%}
+.btn.ghost{background:#eef1ee;border-color:#eef1ee;color:var(--tinta)}
+.btn[disabled]{opacity:.6;cursor:default}
+
+/* Voz */
+.voice{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 14px 14px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.8px;color:var(--gris);text-transform:uppercase}
+.mic-btn{margin:16px 0 14px;width:104px;height:104px;border-radius:50%;border:0;background:var(--verde-600);display:grid;place-items:center;box-shadow:0 0 0 10px var(--verde-100)}
+.mic-btn.on{animation:pulse 1.1s ease-in-out infinite;background:var(--verde-900)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 8px var(--verde-100)}50%{box-shadow:0 0 0 20px rgba(43,122,88,.18)}}
+.wave{display:flex;gap:4px;height:26px;align-items:center;margin-bottom:6px}
+.wave i{display:block;width:5px;border-radius:3px;background:var(--verde-600);animation:bar .8s ease-in-out infinite}
+.wave i:nth-child(2){animation-delay:.12s}.wave i:nth-child(3){animation-delay:.24s}.wave i:nth-child(4){animation-delay:.36s}.wave i:nth-child(5){animation-delay:.48s}
+@keyframes bar{0%,100%{height:6px}50%{height:24px}}
+.say{font-size:17px;font-weight:700}
+.example{color:var(--gris);font-size:14px;margin-top:2px}
+.parcial{margin:6px 0 2px;min-height:24px;font-size:18px;font-weight:700;color:var(--verde-900)}
+.privnote{margin:10px 0 0;font-size:12.5px;color:var(--gris)}
+.aviso{width:100%;margin:10px 0 4px;padding:12px;border-radius:12px;background:var(--ambar-bg);color:var(--ambar);font-size:14px;font-weight:600;text-align:left}
+.escribir{width:100%;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea);text-align:left}
+.escribir label{display:block;font-size:13px;font-weight:700;color:var(--gris);margin-bottom:6px}
+.erow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.quick{width:100%;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea);text-align:left}
+.quick p{margin:0 0 8px;font-size:13px;color:var(--gris)}
+.qbtn{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;margin-bottom:8px;padding:6px 12px;border-radius:12px;border:1px solid var(--linea);background:#f6f8f6;text-align:left;font-weight:600}
+.qbtn svg{flex:none}
+
+.form{display:grid;gap:10px}
+.form label{display:block;font-size:13px;font-weight:700;color:var(--gris);margin-bottom:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{width:100%;height:48px;padding:0 12px;border-radius:12px;border:1px solid #c9d2cc;background:#fff}
+.field.miss{border-color:var(--ambar-solid);background:var(--ambar-bg)}
+.err{color:var(--rojo);font-size:13px;font-weight:600;margin:0}
+
+.log{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.log li{display:flex;align-items:center;gap:10px;font-size:14.5px}
+.tag{flex:none;min-width:62px;text-align:center;padding:3px 8px;border-radius:8px;font-size:12px;font-weight:800}
+.tag.venta{background:var(--verde-100);color:var(--verde-900)}
+.tag.compra{background:#e5edf9;color:#1f4a8a}
+.tag.merma{background:var(--rojo-bg);color:var(--rojo)}
+.tag.si{background:var(--verde-100);color:var(--verde-900)}
+.tag.parcial{background:var(--ambar-bg);color:var(--ambar)}
+.tag.no{background:var(--rojo-bg);color:var(--rojo)}
+.log time{margin-left:auto;color:var(--gris);font-size:13px;white-space:nowrap}
+.ex{font-size:11px;color:var(--gris);font-weight:600}
+
+/* Frases escuchadas */
+.flist{list-style:none;margin:10px 0 0;padding:0;display:grid}
+.flist li{display:grid;gap:3px;padding:9px 0;border-top:1px solid var(--linea);font-size:14.5px}
+.flist .fl{display:flex;align-items:center;gap:8px}
+.flist time{margin-left:auto;color:var(--gris);font-size:12.5px;white-space:nowrap}
+.flist small{color:var(--gris);font-size:12.5px}
+
+/* Stock */
+.prod{display:grid;gap:10px}
+.prod .name{font-size:19px;font-weight:800}
+.prod .type{font-size:12.5px;color:var(--gris);font-weight:600}
+.qty{text-align:right}
+.qty b{font-size:24px;font-weight:800;display:block;line-height:1}
+.qty span{font-size:12.5px;color:var(--gris)}
+.state{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sbtn{min-height:44px;padding:0 4px;border-radius:11px;border:1px solid var(--linea);background:#f4f6f4;color:var(--gris);font-weight:700;font-size:13.5px;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px}
+.sbtn i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.sbtn[data-e=fresco] i{background:#22a06b}.sbtn[data-e=ofertar] i{background:var(--ambar-solid)}.sbtn[data-e=merma] i{background:var(--rojo-solid)}
+.sbtn[aria-pressed=true][data-e=fresco]{background:#22a06b;border-color:#22a06b;color:#fff}
+.sbtn[aria-pressed=true][data-e=ofertar]{background:var(--ambar-solid);border-color:var(--ambar-solid);color:#2b1a00}
+.sbtn[aria-pressed=true][data-e=merma]{background:var(--rojo-solid);border-color:var(--rojo-solid);color:#fff}
+.sbtn[aria-pressed=true] i{background:currentColor}
+.note{font-size:13px;color:var(--gris)}
+.note.warn{color:var(--rojo);font-weight:600}
+.pricerow{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.totals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.totals div{padding:12px;border-radius:14px;background:#fff;border:1px solid var(--linea)}
+.totals b{display:block;font-size:22px;font-weight:800}
+.totals span{font-size:12.5px;color:var(--gris)}
+
+/* Sugerencia */
+.rule{background:var(--verde-100);border:1px solid #bfe0cd;border-radius:14px;padding:12px 14px;font-size:14px;color:var(--verde-900)}
+.rule b{display:block;margin-bottom:3px}
+.buy{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.buybox{text-align:center;min-width:112px;padding:8px 12px;border-radius:12px;background:var(--verde-100);color:var(--verde-900)}
+.buybox small{display:block;font-size:11.5px;font-weight:700}
+.buybox b{font-size:24px;font-weight:800}
+.buybox.adj{background:var(--ambar-bg);color:var(--ambar)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px}
+.facts div{padding:8px 10px;border-radius:10px;background:#f4f6f4}
+.facts span{display:block;font-size:12px;color:var(--gris)}
+.facts b{font-weight:800}
+.acts{display:flex;gap:8px}
+.acts .btn{flex:1;min-height:44px;font-size:14px}
+.calc{padding:10px 12px;border-radius:12px;background:#f9faf9;border:1px dashed #b9c4bd;font-size:14px;display:grid;gap:3px}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px;border-radius:12px;background:var(--ambar-bg)}
+.stepper button.s{width:48px;height:48px;border-radius:12px;border:1px solid #e3c98f;background:#fff;font-size:26px;font-weight:700;line-height:1}
+.stepper output{font-size:22px;font-weight:800;min-width:80px;text-align:center}
+.link{background:none;border:0;min-height:44px;padding:6px 2px;color:var(--verde-600);font-weight:700;font-size:14px;text-decoration:underline}
+
+/* Resumen */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile small{display:block;font-size:11.5px;font-weight:800;letter-spacing:.5px;color:var(--gris);text-transform:uppercase}
+.tile b{display:block;font-size:28px;font-weight:800;margin:4px 0 2px}
+.tile.bad b{color:var(--rojo)}
+.good{color:#177a4d;font-size:13px;font-weight:700}
+.bars{display:grid;gap:12px;margin-top:10px}
+.bar .lbl{display:flex;justify-content:space-between;font-weight:700;margin-bottom:5px}
+.bar .lbl span:last-child{font-variant-numeric:tabular-nums}
+.track{height:9px;border-radius:5px;background:#e8eee9}
+.fill{height:100%;border-radius:5px;background:var(--verde-600)}
+.semana{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dia{min-height:84px;padding:6px 0;border-radius:12px;border:1px solid var(--linea);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;font-weight:700;font-size:12.5px;color:var(--gris)}
+.dia i{display:block;width:55%;border-radius:4px;background:var(--verde-600)}
+.dia small{font-size:11.5px;font-weight:600}
+.dia[aria-pressed=true]{border-color:var(--verde-600);background:var(--verde-100);color:var(--verde-900)}
+.dia[disabled]{opacity:.45;cursor:default}
+.kv{display:grid;gap:6px;font-size:15px}
+.kv div{display:flex;justify-content:space-between;gap:10px}
+.kv div > span{color:var(--gris)}
+.kv b{text-align:right}
+.cta{background:var(--verde-900);color:#fff;border-radius:16px;padding:16px}
+.cta .tagp{display:inline-block;background:var(--ambar-solid);color:#3a2300;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px}
+.cta h3{margin:8px 0 4px;font-size:18px}
+.cta p{margin:0 0 12px;font-size:14px;color:#cfe3d8}
+.cta .btn{background:#7ed3a8;border-color:#7ed3a8;color:#0c2a1d}
+
+/* Navegación */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--linea)}
+.tab{position:relative;min-height:62px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12.5px;font-weight:700;color:var(--gris)}
+.tab[aria-selected=true]{color:var(--verde-600)}
+.tab[aria-selected=true]::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--verde-600)}
+
+/* Capas */
+.layer{position:absolute;inset:0;background:rgba(10,22,16,.5);display:flex;z-index:10}
+.layer.sheet{align-items:flex-end}
+.layer.modal{align-items:center;justify-content:center;padding:18px}
+.sheet-body{width:100%;background:#fff;border-radius:22px 22px 0 0;padding:18px 16px 18px;display:grid;gap:12px;max-height:92%;overflow-y:auto}
+.modal-body{width:100%;background:#fff;border-radius:22px;padding:20px 16px;display:grid;gap:12px;text-align:center;max-height:94%;overflow-y:auto}
+.heard{font-size:22px;font-weight:800;line-height:1.2}
+.det{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.det.four{grid-template-columns:1fr 1fr}
+.det div{padding:10px;border-radius:12px;background:#f4f6f4}
+.det span{display:block;font-size:12px;color:var(--gris);font-weight:700}
+.det b{font-size:17px;font-weight:800}
+.det b.miss{color:var(--ambar)}
+.det b.soft{color:var(--gris);font-weight:600}
+.notas{display:grid;gap:4px;padding:10px 12px;border-radius:12px;background:var(--ambar-bg);color:var(--ambar);font-size:14px;font-weight:600}
+.peso{display:grid;gap:6px;padding:12px;border-radius:12px;border:1px dashed #e3c98f;background:#fffaf0}
+.peso label{font-weight:800;font-size:15px}
+.peso output{align-self:center;font-weight:800;font-size:17px}
+.plan-box{text-align:left;border-radius:14px;padding:12px 14px;border:1px solid var(--linea)}
+.plan-box.cur{background:#edf8f1;border-color:#bfe0cd}
+.plan-box .head{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.plan-box ul{margin:8px 0 0;padding-left:18px;font-size:14px;display:grid;gap:3px}
+.plan-box p{margin:6px 0 0;font-size:14px;color:var(--gris)}
+.badge{padding:2px 9px;border-radius:7px;background:var(--verde-100);color:var(--verde-900);font-size:11.5px;font-weight:800}
+.price{font-size:20px;font-weight:800}
+.price small{font-size:12px;font-weight:600;color:var(--gris)}
+.tests{list-style:none;margin:0;padding:0;text-align:left;display:grid;gap:6px;font-size:13.5px}
+.tests li{padding:8px 10px;border-radius:10px;background:#f4f6f4}
+.tests li.mal{background:var(--rojo-bg)}
+.tests small{display:block;color:var(--gris)}
+.toast{position:absolute;left:16px;right:16px;bottom:78px;z-index:20;padding:13px 16px;border-radius:14px;background:var(--verde-900);color:#fff;font-weight:700;font-size:15px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){.mic-btn.on,.wave i{animation:none}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+    <header class="top">
+      <div class="logo" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#17402f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-3-3-8-1-8 4 0 5 4 9 8 9s8-4 8-9c0-5-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-5"/></svg>
+      </div>
+      <div class="brand"><b>FrescoPlan</b><span class="pill">PILOTO</span><small>Puesto 42 • M. Surquillo N°1</small></div>
+      <button class="plan-btn" data-act="plans" id="planBtn" type="button"></button>
+    </header>
+    <main class="screen" id="screen" aria-live="polite"></main>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab" role="tab" data-tab="voz" type="button"></button>
+      <button class="tab" role="tab" data-tab="stock" type="button"></button>
+      <button class="tab" role="tab" data-tab="comprar" type="button"></button>
+      <button class="tab" role="tab" data-tab="resumen" type="button"></button>
+    </nav>
+    <div id="layer"></div>
+    <div id="toast" class="toast" role="status" hidden></div>
+  </div>
+</div>
+
+<script>
+/* ---------- Datos de ejemplo y regla de reposición ---------- */
+/* ---------- Historial de EJEMPLO para la demo ----------
+   4 semanas inventadas de ventas, compras y señales de deterioro para los 5 productos iniciales.
+   Sirve para que la sugerencia funcione en las entrevistas; lo que se registra por voz se suma encima.
+   media: kg vendidos por día · ciclo: cada cuántos días compra · deterioro: días hasta que lo marca "ofertar". */
+var DEMO = {
+  tomate:  {media:6.5, ciclo:3, deterioro:3,    merma:0.5},
+  palta:   {media:4.3, ciclo:7, deterioro:4,    merma:0.8},
+  platano: {media:3.6, ciclo:3, deterioro:3,    merma:0.6},
+  cebolla: {media:7.0, ciclo:7, deterioro:null, merma:0.2},
+  limon:   {media:5.0, ciclo:3, deterioro:null, merma:0.2}
+};
+var FACTOR_DEMO = [1.15,0.85,0.9,0.9,0.95,1.05,1.35];   // domingo..sábado (ejemplo: el sábado se vende más)
+var DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+function hoyStr(){ return fechaISO(new Date()); }
+function sumarDias(s, n){ var d = new Date(s+'T12:00:00'); d.setDate(d.getDate()+n); return fechaISO(d); }
+function diasEntre(a, b){ return Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00'))/864e5); }
+function diaSemana(s){ return new Date(s+'T12:00:00').getDay(); }
+function historialDemo(){
+  var mov = [], est = [], semilla = 7, hoy = hoyStr();
+  function azar(){ semilla = (semilla*16807) % 2147483647; return semilla/2147483647; }
+  Object.keys(DEMO).forEach(function(id, k){
+    var c = DEMO[id];
+    for(var i=28;i>=1;i--){
+      var d = sumarDias(hoy, -i), w = diaSemana(d);
+      var kg = Math.round(c.media*FACTOR_DEMO[w]*(0.75+0.5*azar())*2)/2;
+      var agotado = (id==='tomate' && w===6 && i>7 && i<=14);          // un sábado se quedó sin tomate
+      if(agotado) kg = Math.round(c.media*0.8);
+      if(kg>0) mov.push({d:d, tipo:'venta', prod:id, kg:kg, ej:1, agotado:agotado?1:0});
+      if((i+k) % c.ciclo === 0){
+        mov.push({d:d, tipo:'compra', prod:id, kg:Math.round(c.media*c.ciclo*1.1), ej:1});
+        if(c.deterioro){
+          var ds = sumarDias(d, c.deterioro);
+          if(ds < hoy){ est.push({d:ds, prod:id, e:'ofertar', ej:1}); mov.push({d:ds, tipo:'merma', prod:id, kg:c.merma, ej:1}); }
+        }
+      }
+      if(!c.deterioro && azar()<0.08) mov.push({d:d, tipo:'merma', prod:id, kg:c.merma, ej:1});
+    }
+  });
+  return {mov:mov, estados:est};
+}
+
+function seedProducts(){
+  // precio: precio de VENTA por kilo del comerciante. Empieza vacío: lo registra él (no hay dato con fuente).
+  // costo: su último precio de compra por kilo, si lo dijo. stock inicial: dato de ejemplo.
+  // Ventas, compras y mermas viven en S.mov (ver historialDemo).
+  return [
+    {id:'tomate',  nombre:'Tomate',  tipo:'Verdura', stock:12, estado:'fresco',  precio:null},
+    {id:'palta',   nombre:'Palta',   tipo:'Fruta',   stock:8,  estado:'ofertar', precio:null},
+    {id:'platano', nombre:'Plátano', tipo:'Fruta',   stock:3,  estado:'merma',   precio:null},
+    {id:'cebolla', nombre:'Cebolla', tipo:'Verdura', stock:20, estado:'fresco',  precio:null},
+    {id:'limon',   nombre:'Limón',   tipo:'Fruta',   stock:6,  estado:'fresco',  precio:null}
+  ];
+}
+// Botones de prueba rápida: pasan por el intérprete real (no se guardan en la lista de frases).
+var FRASES = [
+  'Vendí 5 kilos de tomate',
+  'Despaché dos kilos y medio de palta fuerte a 8 soles el kilo',
+  'Me llegó un cajón de tomate',
+  'Se malogró medio kilo de plátano'
+];
+/* ---------- Catálogo de productos (ampliar aquí) ----------
+   alias: cómo lo dice el comerciante (con tildes; los plurales se generan solos).
+   unidad: cómo se vende si no dice la unidad ("vendí 3 lechugas" = 3 unidades). Sin unidad = kilos.
+   El puesto del comerciante ("Mis productos") es solo una parte del catálogo. */
+var CATALOGO = [
+  // Frutas
+  {id:'palta',      nombre:'Palta',      tipo:'Fruta', alias:['palta','palta fuerte','palta hass','palta has','palta jas','aguacate']},
+  {id:'platano',    nombre:'Plátano',    tipo:'Fruta', alias:['plátano','plátano de seda','plátano isla','plátano de la isla','plátano bellaco','plátano manzano','guineo']},
+  {id:'limon',      nombre:'Limón',      tipo:'Fruta', alias:['limón','limón sutil','limón tahití','limoncito']},
+  {id:'naranja',    nombre:'Naranja',    tipo:'Fruta', alias:['naranja','naranja de jugo','naranja huando','naranja valencia']},
+  {id:'mandarina',  nombre:'Mandarina',  tipo:'Fruta', alias:['mandarina','mandarina murcott','mandarina satsuma']},
+  {id:'manzana',    nombre:'Manzana',    tipo:'Fruta', alias:['manzana','manzana delicia','manzana israel','manzana verde','manzana roja','manzana fuji']},
+  {id:'pera',       nombre:'Pera',       tipo:'Fruta', alias:['pera']},
+  {id:'uva',        nombre:'Uva',        tipo:'Fruta', alias:['uva','uva red globe','uva italia','uva negra','uva borgoña']},
+  {id:'papaya',     nombre:'Papaya',     tipo:'Fruta', alias:['papaya']},
+  {id:'pina',       nombre:'Piña',       tipo:'Fruta', alias:['piña','piña golden'], unidad:'unidad'},
+  {id:'mango',      nombre:'Mango',      tipo:'Fruta', alias:['mango','mango kent','mango criollo','mango edward']},
+  {id:'fresa',      nombre:'Fresa',      tipo:'Fruta', alias:['fresa','frutilla']},
+  {id:'sandia',     nombre:'Sandía',     tipo:'Fruta', alias:['sandía'], unidad:'unidad'},
+  {id:'melon',      nombre:'Melón',      tipo:'Fruta', alias:['melón'], unidad:'unidad'},
+  {id:'granadilla', nombre:'Granadilla', tipo:'Fruta', alias:['granadilla']},
+  {id:'maracuya',   nombre:'Maracuyá',   tipo:'Fruta', alias:['maracuyá']},
+  {id:'chirimoya',  nombre:'Chirimoya',  tipo:'Fruta', alias:['chirimoya']},
+  {id:'lucuma',     nombre:'Lúcuma',     tipo:'Fruta', alias:['lúcuma']},
+  {id:'tuna',       nombre:'Tuna',       tipo:'Fruta', alias:['tuna']},
+  {id:'durazno',    nombre:'Durazno',    tipo:'Fruta', alias:['durazno','melocotón']},
+  {id:'aguaymanto', nombre:'Aguaymanto', tipo:'Fruta', alias:['aguaymanto']},
+  {id:'pepino_dulce',nombre:'Pepino dulce',tipo:'Fruta', alias:['pepino dulce']},
+  // Verduras
+  {id:'tomate',     nombre:'Tomate',     tipo:'Verdura', alias:['tomate','tomate italiano','tomate redondo']},
+  {id:'cebolla',    nombre:'Cebolla',    tipo:'Verdura', alias:['cebolla','cebolla roja','cebolla blanca','cebolla de cabeza']},
+  {id:'cebolla_china',nombre:'Cebolla china',tipo:'Verdura', alias:['cebolla china','cebollita china'], unidad:'atado'},
+  {id:'papa_blanca',nombre:'Papa blanca',tipo:'Verdura', alias:['papa','papa blanca','papa canchán','papa única','papa yungay','papa perricholi']},
+  {id:'papa_amarilla',nombre:'Papa amarilla',tipo:'Verdura', alias:['papa amarilla','papa tumbay']},
+  {id:'papa_huayro',nombre:'Papa huayro',tipo:'Verdura', alias:['papa huayro','papa huairo']},
+  {id:'camote',     nombre:'Camote',     tipo:'Verdura', alias:['camote','camote amarillo','camote morado']},
+  {id:'yuca',       nombre:'Yuca',       tipo:'Verdura', alias:['yuca']},
+  {id:'olluco',     nombre:'Olluco',     tipo:'Verdura', alias:['olluco','ulluco']},
+  {id:'zanahoria',  nombre:'Zanahoria',  tipo:'Verdura', alias:['zanahoria']},
+  {id:'betarraga',  nombre:'Betarraga',  tipo:'Verdura', alias:['betarraga','beterraga','remolacha']},
+  {id:'zapallo',    nombre:'Zapallo',    tipo:'Verdura', alias:['zapallo','zapallo macre']},
+  {id:'loche',      nombre:'Zapallo loche',tipo:'Verdura', alias:['loche','zapallo loche']},
+  {id:'zapallito',  nombre:'Zapallito italiano',tipo:'Verdura', alias:['zapallito','zapallito italiano']},
+  {id:'choclo',     nombre:'Choclo',     tipo:'Verdura', alias:['choclo'], unidad:'unidad'},
+  {id:'ajo',        nombre:'Ajo',        tipo:'Verdura', alias:['ajo']},
+  {id:'kion',       nombre:'Kion',       tipo:'Verdura', alias:['kion','kión','jengibre']},
+  {id:'aji_amarillo',nombre:'Ají amarillo',tipo:'Verdura', alias:['ají','ají amarillo']},
+  {id:'aji_limo',   nombre:'Ají limo',   tipo:'Verdura', alias:['ají limo']},
+  {id:'rocoto',     nombre:'Rocoto',     tipo:'Verdura', alias:['rocoto']},
+  {id:'pimiento',   nombre:'Pimiento',   tipo:'Verdura', alias:['pimiento','pimentón']},
+  {id:'lechuga',    nombre:'Lechuga',    tipo:'Verdura', alias:['lechuga','lechuga americana','lechuga hidropónica'], unidad:'unidad'},
+  {id:'repollo',    nombre:'Repollo',    tipo:'Verdura', alias:['repollo','col']},
+  {id:'coliflor',   nombre:'Coliflor',   tipo:'Verdura', alias:['coliflor'], unidad:'unidad'},
+  {id:'brocoli',    nombre:'Brócoli',    tipo:'Verdura', alias:['brócoli']},
+  {id:'apio',       nombre:'Apio',       tipo:'Verdura', alias:['apio']},
+  {id:'poro',       nombre:'Poro',       tipo:'Verdura', alias:['poro','puerro']},
+  {id:'culantro',   nombre:'Culantro',   tipo:'Verdura', alias:['culantro','cilantro'], unidad:'atado'},
+  {id:'perejil',    nombre:'Perejil',    tipo:'Verdura', alias:['perejil'], unidad:'atado'},
+  {id:'espinaca',   nombre:'Espinaca',   tipo:'Verdura', alias:['espinaca'], unidad:'atado'},
+  {id:'huacatay',   nombre:'Huacatay',   tipo:'Verdura', alias:['huacatay'], unidad:'atado'},
+  {id:'rabanito',   nombre:'Rabanito',   tipo:'Verdura', alias:['rabanito','rábano'], unidad:'atado'},
+  {id:'nabo',       nombre:'Nabo',       tipo:'Verdura', alias:['nabo']},
+  {id:'pepino',     nombre:'Pepinillo',  tipo:'Verdura', alias:['pepino','pepinillo']},
+  {id:'vainita',    nombre:'Vainita',    tipo:'Verdura', alias:['vainita']},
+  {id:'arveja',     nombre:'Arveja',     tipo:'Verdura', alias:['arveja','alverja','arveja verde']},
+  {id:'haba',       nombre:'Haba',       tipo:'Verdura', alias:['haba','haba verde']}
+];
+var CAT = {}; CATALOGO.forEach(function(c){ CAT[c.id] = c; });
+var LIMITE_GRATIS = 5;   // plan gratuito: hasta 5 productos
+
+/* ---------- Precio de COMPRA de referencia (mayorista, SIEA · MIDAGRI) ----------
+   Es lo que más o menos paga el comerciante al comprar en el mayorista. NO es su precio de venta:
+   el precio de venta lo registra cada comerciante (por voz, registro manual o Stock).
+   Fuente: boletín SISAP "Precios mayoristas de los principales productos comercializados en el GMML
+   y MM N.° 2 Frutas", tablas en S/ por kg, promedio del vie 30 oct al jue 5 nov 2026.
+   GMML = Gran Mercado Mayorista de Lima · MMF2 = Mercado Mayorista de Frutas N.° 2.
+   Actualizar copiando del boletín nuevo y cambiando REF_PERIODO. NO inventar valores: sin dato, no va. */
+var REF_FUENTE = 'SIEA · MIDAGRI';
+var REF_PERIODO = '30 oct – 5 nov 2026';
+var REF_PRECIOS = {
+  // Frutas
+  palta:       {precio:8.52,  variedad:'Palta fuerte costa',        mercado:'MMF2'},
+  platano:     {precio:2.14,  variedad:'Plátano seda (selva)',      mercado:'MMF2'},
+  limon:       {precio:1.91,  variedad:'Limón sutil cajón',         mercado:'GMML'},
+  naranja:     {precio:0.92,  variedad:'Naranja Valencia',          mercado:'MMF2'},
+  mandarina:   {precio:3.16,  variedad:'Mandarina Satsuma',         mercado:'MMF2'},
+  manzana:     {precio:2.58,  variedad:'Manzana Delicia',           mercado:'MMF2'},
+  pera:        {precio:4.74,  variedad:'Pera de agua italiana',     mercado:'MMF2'},
+  uva:         {precio:3.74,  variedad:'Uva Red Globe',             mercado:'MMF2'},
+  papaya:      {precio:1.57,  variedad:'Papaya selva',              mercado:'MMF2'},
+  pina:        {precio:1.71,  variedad:'Piña Golden',               mercado:'MMF2'},
+  mango:       {precio:3.98,  variedad:'Mango Kent',                mercado:'MMF2'},
+  fresa:       {precio:6.06,  variedad:'Fresa San Andreas',         mercado:'MMF2'},
+  sandia:      {precio:0.93,  variedad:'Sandía',                    mercado:'MMF2'},
+  melon:       {precio:1.66,  variedad:'Melón coquito',             mercado:'MMF2'},
+  granadilla:  {precio:3.43,  variedad:'Granadilla selva',          mercado:'MMF2'},
+  maracuya:    {precio:5.17,  variedad:'Maracuyá costa',            mercado:'MMF2'},
+  chirimoya:   {precio:5.09,  variedad:'Chirimoya Cumbe',           mercado:'MMF2'},
+  lucuma:      {precio:8.82,  variedad:'Lúcuma de seda',            mercado:'MMF2'},
+  tuna:        {precio:3.41,  variedad:'Tuna amarilla',             mercado:'MMF2'},
+  durazno:     {precio:5.07,  variedad:'Melocotón durazno huayco',  mercado:'MMF2'},
+  pepino_dulce:{precio:4.21,  variedad:'Pepino rayado o melón',     mercado:'MMF2'},
+  aguaymanto:  {precio:4.20,  variedad:'Aguaymanto',                mercado:'MMF2', periodo:'7 días al 30 oct 2026'},
+  // Verduras
+  tomate:      {precio:2.94,  variedad:'Tomate Katia',              mercado:'GMML'},
+  cebolla:     {precio:2.45,  variedad:'Cebolla cabeza roja',       mercado:'GMML'},
+  cebolla_china:{precio:4.49, variedad:'Cebolla china',             mercado:'GMML'},
+  papa_blanca: {precio:1.56,  variedad:'Papa blanca',               mercado:'GMML'},
+  papa_amarilla:{precio:4.41, variedad:'Papa amarilla',             mercado:'GMML'},
+  papa_huayro: {precio:3.08,  variedad:'Papa huayro',               mercado:'GMML'},
+  camote:      {precio:0.92,  variedad:'Camote amarillo',           mercado:'GMML'},
+  yuca:        {precio:1.88,  variedad:'Yuca amarilla',             mercado:'GMML'},
+  olluco:      {precio:4.80,  variedad:'Olluco largo',              mercado:'GMML'},
+  zanahoria:   {precio:2.63,  variedad:'Zanahoria',                 mercado:'GMML'},
+  betarraga:   {precio:3.72,  variedad:'Beterraga',                 mercado:'GMML'},
+  zapallo:     {precio:2.52,  variedad:'Zapallo macre',             mercado:'GMML'},
+  loche:       {precio:11.90, variedad:'Zapallo loche',             mercado:'GMML'},
+  zapallito:   {precio:1.67,  variedad:'Zapallo italiano',          mercado:'GMML'},
+  choclo:      {precio:8.63,  variedad:'Choclo tipo Cusco',         mercado:'GMML'},
+  ajo:         {precio:4.93,  variedad:'Ajo criollo o napurí',      mercado:'GMML'},
+  kion:        {precio:3.94,  variedad:'Kion',                      mercado:'GMML'},
+  aji_amarillo:{precio:5.35,  variedad:'Ají escabeche fresco',      mercado:'GMML'},
+  rocoto:      {precio:2.71,  variedad:'Ají rocoto',                mercado:'GMML'},
+  pimiento:    {precio:3.30,  variedad:'Pimiento morrón',           mercado:'GMML'},
+  lechuga:     {precio:2.57,  variedad:'Lechuga americana',         mercado:'GMML'},
+  repollo:     {precio:1.02,  variedad:'Col corazón',               mercado:'GMML'},
+  coliflor:    {precio:0.94,  variedad:'Coliflor',                  mercado:'GMML'},
+  brocoli:     {precio:3.61,  variedad:'Brócoli',                   mercado:'GMML'},
+  apio:        {precio:6.57,  variedad:'Apio',                      mercado:'GMML'},
+  poro:        {precio:5.47,  variedad:'Poro',                      mercado:'GMML'},
+  culantro:    {precio:2.92,  variedad:'Culantro',                  mercado:'GMML'},
+  perejil:     {precio:2.50,  variedad:'Perejil',                   mercado:'GMML'},
+  espinaca:    {precio:2.91,  variedad:'Espinaca',                  mercado:'GMML'},
+  huacatay:    {precio:2.59,  variedad:'Huacatay',                  mercado:'GMML'},
+  rabanito:    {precio:5.17,  variedad:'Rabanito',                  mercado:'GMML'},
+  nabo:        {precio:3.52,  variedad:'Nabo',                      mercado:'GMML'},
+  pepino:      {precio:0.95,  variedad:'Pepinillo',                 mercado:'GMML'},
+  vainita:     {precio:5.49,  variedad:'Vainita americana',         mercado:'GMML'},
+  arveja:      {precio:7.67,  variedad:'Arveja verde americana',    mercado:'GMML'},
+  haba:        {precio:2.46,  variedad:'Haba verde serrana',        mercado:'GMML'}
+  // aji_limo: no aparece en el boletín
+};
+function refTxt(id){
+  var r = REF_PRECIOS[id]; if(!r) return '';
+  return soles(r.precio)+'/kg · '+r.variedad+', '+r.mercado+' ('+REF_FUENTE+', '+(r.periodo||REF_PERIODO)+')';
+}
+
+var TIPO = {venta:'Venta', compra:'Compra', merma:'Merma'};
+var ESTADO = {fresco:'Fresco', ofertar:'Ofertar hoy', merma:'Merma'};
+var RES = {si:'Entendida', parcial:'Parcial', no:'No entendió'};
+
+/* ---------- Diccionario de voz (ampliar aquí) ----------
+   Se puede escribir con tildes y mayúsculas: se normaliza al cargar.
+   Las frases más largas ganan ("me compraron" es venta aunque contenga "compr"). */
+var DICC = {
+  verbos: {
+    venta:  ['vendí','vendimos','vendo','vendió','se vendió','se vendieron','despaché','despachamos','salió','salieron','me compraron','me compró'],
+    compra: ['compré','compramos','traje','trajimos','me llegó','me llegaron','llegó','llegaron','jalé','jalamos','recibí'],
+    merma:  ['tiré','tiramos','boté','botamos','se malogró','se malograron','se pudrió','se pudrieron','se echó a perder','se echaron a perder','se dañó','se dañaron','perdí','merma']
+  },
+  productos: {},   // se llena desde CATALOGO
+
+  // kg: kilos por unidad. null = depende del producto: se pregunta al comerciante y se recuerda.
+  unidades: {
+    kilo:   {kg:1,     palabras:['kilo','kilos','kg','kgs','kilogramo','kilogramos','kilito','kilitos'], txt:['kilo','kilos']},
+    gramo:  {kg:0.001, palabras:['gramo','gramos','gr','grs','g'], txt:['gramo','gramos']},
+    arroba: {kg:null,  palabras:['arroba','arrobas'], txt:['arroba','arrobas']},
+    cajon:  {kg:null,  palabras:['cajón','cajones'], txt:['cajón','cajones']},
+    jaba:   {kg:null,  palabras:['jaba','jabas'], txt:['jaba','jabas']},
+    ciento: {kg:null,  palabras:['ciento','cientos'], txt:['ciento','cientos']},
+    mano:   {kg:null,  palabras:['mano','manos'], txt:['mano','manos']},
+    saco:   {kg:null,  palabras:['saco','sacos','costal','costales'], txt:['saco','sacos']},
+    docena: {kg:null,  palabras:['docena','docenas'], txt:['docena','docenas']},
+    atado:  {kg:null,  palabras:['atado','atados','atadito','ataditos'], txt:['atado','atados']},
+    unidad: {kg:null,  palabras:['unidad','unidades'], txt:['unidad','unidades']}
+  },
+  soles: ['sol','soles','luca','lucas']
+};
+var NUM = {
+  uni:{un:1,uno:1,una:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9},
+  esp:{diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,veinte:20,veintiun:21,veintiuno:21,veintiuna:21,veintidos:22,veintitres:23,veinticuatro:24,veinticinco:25,veintiseis:26,veintisiete:27,veintiocho:28,veintinueve:29},
+  dec:{treinta:30,cuarenta:40,cincuenta:50,sesenta:60,setenta:70,ochenta:80,noventa:90},
+  cen:{cien:100,doscientos:200,doscientas:200,trescientos:300,trescientas:300,cuatrocientos:400,cuatrocientas:400,quinientos:500,quinientas:500,seiscientos:600,setecientos:700,ochocientos:800,novecientos:900}
+};
+
+/* ---------- Guardado local (lista de frases, pesos aprendidos, aviso de voz) ---------- */
+function leerLS(k, d){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function guardarLS(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+var LS_FRASES = 'frescoplan.frases', LS_PESOS = 'frescoplan.pesos', LS_AVISO = 'frescoplan.avisoVoz';
+var FR = leerLS(LS_FRASES, []);      // frases escuchadas: no se borran al reiniciar la demo
+var PESOS = leerLS(LS_PESOS, {});    // "producto|unidad" -> kilos por unidad, dichos por el comerciante
+var AVISO_OK = leerLS(LS_AVISO, false);
+function guardarFrases(){ guardarLS(LS_FRASES, FR); }
+
+var S;
+function resetState(){
+  S = {
+    tab:'voz', products:seedProducts(), ajustes:{}, adjOpen:{}, precioEdit:{}, resSemana:0, resDia:null,
+    mov:[], estados:[],
+    registros:[
+      {tipo:'venta',  texto:'Cebolla · 4 kg',  hora:'10:12', ej:true},
+      {tipo:'compra', texto:'Limón · 15 kg',   hora:'06:40', ej:true}
+    ],
+    listening:false, parcial:'', vozErr:'', escrito:'', frasesOpen:false,
+    sheet:null, plans:false, limite:false, trial:false, aviso:false, tests:null, agregar:'',
+    manual:{tipo:'venta', prod:'tomate', qty:'', precio:''}, manualErr:''
+  };
+  var h = historialDemo(); S.mov = h.mov; S.estados = h.estados;
+}
+resetState();
+
+/* Estado del puesto (productos, precios, stock, registros): se guarda para que no se pierda al recargar.
+   "Reiniciar demo" lo vuelve a los datos de ejemplo. */
+var LS_ESTADO = 'frescoplan.estado';
+function guardarEstado(){
+  var desde = sumarDias(hoyStr(), -90);   // basta con los últimos 3 meses
+  guardarLS(LS_ESTADO, {products:S.products, registros:S.registros.slice(0,50), trial:S.trial,
+    mov:S.mov.filter(function(m){ return m.d>=desde; }), estados:S.estados.filter(function(m){ return m.d>=desde; })});
+}
+(function cargarEstado(){
+  var g = leerLS(LS_ESTADO, null);
+  if(!g || !Array.isArray(g.products)) return;
+  S.products = g.products.filter(function(p){ return p && CAT[p.id]; });
+  if(Array.isArray(g.registros)) S.registros = g.registros;
+  S.trial = !!g.trial;
+  if(Array.isArray(g.mov)){ S.mov = g.mov; S.estados = Array.isArray(g.estados) ? g.estados : []; }   // si no hay (versión anterior), queda el historial de ejemplo
+  S.products.forEach(function(p){ delete p.v7; delete p.m7; });
+  S.manual.prod = S.products.length ? S.products[0].id : '';
+})();
+
+function prod(id){ for(var i=0;i<S.products.length;i++){ if(S.products[i].id===id) return S.products[i]; } }
+function limiteLleno(){ return !S.trial && S.products.length>=LIMITE_GRATIS; }
+// Agrega un producto del catálogo al puesto. Si el plan gratuito está lleno, muestra los planes y devuelve false.
+function agregarProducto(id){
+  if(prod(id)) return true;
+  if(!CAT[id]) return false;
+  if(limiteLleno()){ S.plans = true; S.limite = true; renderLayer(); return false; }
+  var c = CAT[id];
+  S.products.push({id:c.id, nombre:c.nombre, tipo:c.tipo, stock:0, estado:'fresco', precio:null});
+  return true;
+}
+function opcionesCatalogo(sel, soloFuera){
+  var fuera = CATALOGO.filter(function(c){ return !prod(c.id); });
+  var grupo = function(t){ return fuera.filter(function(c){ return c.tipo===t; }).sort(function(a,b){ return a.nombre.localeCompare(b.nombre,'es'); })
+    .map(function(c){ return '<option value="'+c.id+'"'+(sel===c.id?' selected':'')+'>'+c.nombre+'</option>'; }).join(''); };
+  var mios = soloFuera ? '' : '<optgroup label="Mis productos">'+S.products.map(function(p){ return '<option value="'+p.id+'"'+(sel===p.id?' selected':'')+'>'+p.nombre+'</option>'; }).join('')+'</optgroup>';
+  return mios+'<optgroup label="'+(soloFuera?'Frutas':'Otras frutas')+'">'+grupo('Fruta')+'</optgroup><optgroup label="'+(soloFuera?'Verduras':'Otras verduras')+'">'+grupo('Verdura')+'</optgroup>';
+}
+function vendible(p){ return p.estado==='merma' ? 0 : p.stock; }
+function fmt(n){ return Number(n).toLocaleString('es-PE',{maximumFractionDigits:2}); }
+function soles(n){ return 'S/ '+Number(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function redondear(n){ return Math.round(n*1000)/1000; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+/* ---------- Motor de sugerencia de compra ----------
+   El comerciante no ve la fórmula; ve "Compra X kg" y una frase. Por dentro:
+   1) Pronóstico de venta diaria: promedio que se adapta solo (más rápido si las ventas cambian de golpe)
+      y factor por día de la semana. Los días que se quedó sin stock no bajan el pronóstico.
+   2) Ritmo de compra aprendido por producto (cada cuántos días registra compras).
+   3) Vida útil aprendida: días entre una compra y la primera señal de deterioro ("Ofertar hoy", "Merma" o merma registrada).
+   4) Frescura de hoy: "Ofertar hoy" solo cuenta para hoy; "Merma" no cuenta.
+   5) Cuánto de más o de menos: modelo del vendedor de periódicos con su precio de venta y de compra.
+   Solo se sugiere si el producto tiene precio de venta. */
+function ventasEn(id, dias, tipo){
+  var desde = sumarDias(hoyStr(), -(dias-1)), t = 0;
+  S.mov.forEach(function(m){ if(m.prod===id && m.tipo===(tipo||'venta') && m.d>=desde) t += m.kg; });
+  return t;
+}
+function ventas7(p){ return ventasEn(p.id, 7, 'venta'); }
+// Costo por kilo: lo que dijo en su última compra o, si nunca lo dijo, el mayorista de referencia.
+function costoActual(p){ return p.costo || (REF_PRECIOS[p.id] && REF_PRECIOS[p.id].precio) || null; }
+// Ganancia aproximada de los últimos 7 días: vendido × (precio − costo) − merma × costo.
+// No es utilidad neta: no incluye alquiler, transporte ni otros gastos.
+function ganancia7(){
+  var desde = sumarDias(hoyStr(), -6), r = {ganancia:0, ventas:0, perdida:0, hay:false, usaRef:false, sinPrecio:{}, sinCosto:{}};
+  S.mov.forEach(function(m){
+    if(m.d<desde || (m.tipo!=='venta' && m.tipo!=='merma')) return;
+    var p = prod(m.prod); if(!p) return;
+    var c = m.costo!=null ? m.costo : costoActual(p);
+    if(m.costo==null ? !p.costo : m.costoRef) r.usaRef = true;
+    if(m.tipo==='venta'){
+      var pv = m.precio!=null ? m.precio : p.precio;
+      if(pv==null){ r.sinPrecio[m.prod] = 1; return; }
+      r.ventas += m.kg*pv; r.hay = true;
+      if(c==null){ r.sinCosto[m.prod] = 1; return; }
+      r.ganancia += m.kg*(pv-c);
+    } else if(c!=null){ r.perdida += m.kg*c; r.ganancia -= m.kg*c; }
+  });
+  return r;
+}
+function merma7(p){ return ventasEn(p.id, 7, 'merma'); }
+function mediana(a){ var b = a.slice().sort(function(x,y){ return x-y; }), n = b.length; return n ? (n%2 ? b[(n-1)/2] : (b[n/2-1]+b[n/2])/2) : null; }
+function zDe(p){   // inversa de la normal (aprox. Abramowitz–Stegun)
+  if(p<0.5) return -zDe(1-p);
+  var t = Math.sqrt(-2*Math.log(1-p));
+  return t-(2.515517+0.802853*t+0.010328*t*t)/(1+1.432788*t+0.189269*t*t+0.001308*t*t*t);
+}
+function fechasCompra(id){
+  var f = {}; S.mov.forEach(function(m){ if(m.prod===id && m.tipo==='compra') f[m.d] = 1; });
+  return Object.keys(f).sort();
+}
+function intervalos(id){ var f = fechasCompra(id), iv = []; for(var i=1;i<f.length;i++) iv.push(diasEntre(f[i-1], f[i])); return iv; }
+function cicloCompra(id){
+  var iv = intervalos(id);
+  if(iv.length) return {dias:Math.max(1, Math.round(mediana(iv.slice(-5)))), aprendido:true};
+  var todos = [];   // producto nuevo: usa el ritmo de sus otros productos; si no hay, una semana
+  S.products.forEach(function(p){ if(p.id!==id) todos = todos.concat(intervalos(p.id).slice(-5)); });
+  return {dias: todos.length ? Math.max(1, Math.round(mediana(todos))) : 7, aprendido:false};
+}
+function vidaUtil(id){
+  var compras = fechasCompra(id), hoy = hoyStr(), muestras = [], kgCompra = {};
+  S.mov.forEach(function(m){ if(m.prod===id && m.tipo==='compra') kgCompra[m.d] = (kgCompra[m.d]||0)+m.kg; });
+  for(var i=0;i<compras.length;i++){
+    var dp = compras[i], fin = compras[i+1] || hoy, primera = null, senales = [];
+    // Señal de deterioro: marcar "Ofertar hoy"/"Merma", o botar al menos el 20 % de lo comprado (botar medio kilo no cuenta)
+    S.estados.forEach(function(e){ if(e.prod===id && e.e!=='fresco') senales.push(e.d); });
+    S.mov.forEach(function(m){ if(m.prod===id && m.tipo==='merma' && m.kg>=0.2*(kgCompra[dp]||0)) senales.push(m.d); });
+    senales.forEach(function(s){ if(s>dp && s<=fin && (!primera || s<primera)) primera = s; });
+    if(primera) muestras.push(diasEntre(dp, primera));
+  }
+  return muestras.length>=2 ? Math.max(1, Math.round(mediana(muestras.slice(-5)))) : null;
+}
+function pronostico(id){
+  var porDia = {}, agot = {}, primera = null, hoy = hoyStr();
+  S.mov.forEach(function(m){
+    if(m.prod!==id) return;
+    if(!primera || m.d<primera) primera = m.d;
+    if(m.tipo==='venta' && m.d<hoy){ porDia[m.d] = (porDia[m.d]||0)+m.kg; if(m.agotado) agot[m.d] = 1; }
+  });
+  if(!primera) return null;
+  if(!Object.keys(porDia).length){   // solo hay ventas de hoy: estimación provisional ("aún aprendiendo")
+    var hoyKg = ventasEn(id, 1, 'venta');
+    return hoyKg>0 ? {L:hoyKg, f:[1,1,1,1,1,1,1], sigma:Math.max(0.5*hoyKg, 0.3), n:0, tendencia:0} : null;
+  }
+  var serie = [];
+  for(var d=primera; d<hoy; d=sumarDias(d,1)) serie.push({d:d, w:diaSemana(d), y:porDia[d]||0, cens:!!agot[d]});
+  var n = serie.length, f = [1,1,1,1,1,1,1];
+  if(n>=14){
+    var sw = [0,0,0,0,0,0,0], cw = [0,0,0,0,0,0,0], tot = 0, ct = 0;
+    serie.forEach(function(s){ if(!s.cens){ sw[s.w] += s.y; cw[s.w]++; tot += s.y; ct++; } });
+    var media = ct ? tot/ct : 0;
+    if(media>0) for(var w=0;w<7;w++) if(cw[w]>=2) f[w] = Math.min(2, Math.max(0.5, (sw[w]/cw[w])/media));
+  }
+  // Suavizado adaptativo (Trigg-Leach): si el error se repite hacia un lado, aprende más rápido.
+  var ini = serie.slice(0, Math.min(7,n)), L = 0;
+  ini.forEach(function(s){ L += s.y/f[s.w]; }); L = L/ini.length;
+  var E = 0, M = Math.max(0.5, L*0.3), res = [];
+  serie.forEach(function(s){
+    var fc = L*f[s.w], e = s.y-fc;
+    if(s.cens && e<0) return;              // se quedó sin stock: lo vendido no es toda la demanda
+    res.push(e); E = 0.2*e+0.8*E; M = 0.2*Math.abs(e)+0.8*M;
+    var a = Math.min(0.7, Math.max(0.15, Math.abs(E)/M));
+    L = Math.max(0, L + a*(s.y/f[s.w] - L));
+  });
+  var r14 = res.slice(-14), sq = 0; r14.forEach(function(e){ sq += e*e; });
+  var sigma = Math.max(Math.sqrt(sq/Math.max(1,r14.length)), 0.15*L, 0.3);
+  return {L:L, f:f, sigma:sigma, n:n, tendencia:E/M};
+}
+function sugerencia(p){
+  if(p.precio==null) return {sinPrecio:true};
+  var pr = pronostico(p.id);
+  if(!pr) return {sinDatos:true};
+  var hoy = hoyStr(), dem = function(k){ return pr.L*pr.f[diaSemana(sumarDias(hoy,k))]; };
+  var ciclo = cicloCompra(p.id), compras = fechasCompra(p.id), ult = compras[compras.length-1];
+  var dProx = ult ? Math.max(0, diasEntre(hoy, sumarDias(ult, ciclo.dias))) : 0;
+  var vida = vidaUtil(p.id), cobertura = ciclo.dias, capado = false;
+  if(vida && vida<cobertura){ cobertura = vida; capado = true; }
+  // ¿Hasta cuándo alcanza el stock de hoy? "Ofertar hoy" solo sirve para hoy; "Merma" no cuenta.
+  var s = p.estado==='merma' ? 0 : p.stock, alcanza = null;
+  for(var k=0;k<60 && alcanza===null;k++){
+    if(s < dem(k)*0.999) alcanza = k;
+    s = Math.max(0, s-dem(k));
+    if(p.estado==='ofertar' && k===0) s = 0;
+  }
+  if(alcanza===null) alcanza = 60;
+  dProx = Math.min(dProx, alcanza);   // si se acaba antes de su compra habitual, conviene comprar antes
+  // Stock que quedará el día de la próxima compra
+  var sp = p.estado==='merma' ? 0 : p.stock;
+  for(var j=0;j<dProx;j++){ sp = Math.max(0, sp-dem(j)); if(p.estado==='ofertar' && j===0) sp = 0; }
+  if(p.estado==='ofertar' && dProx===0) sp = Math.min(sp, dem(0));
+  var mu = 0; for(var c=dProx;c<dProx+cobertura;c++) mu += dem(c);
+  var sd = pr.sigma*Math.sqrt(cobertura);
+  // Vendedor de periódicos: faltar cuesta la ganancia; sobrar cuesta lo que se pierde de lo comprado.
+  var costo = p.costo || (REF_PRECIOS[p.id] && REF_PRECIOS[p.id].precio) || null, prop = 0.5;
+  var compradoKg = ventasEn(p.id, 28, 'compra'), mermaKg = ventasEn(p.id, 28, 'merma');
+  var tasaMerma = compradoKg>0 ? mermaKg/compradoKg : 0;
+  var pPierde = (vida && vida<=ciclo.dias) ? 1 : Math.min(1, Math.max(0.15, tasaMerma/0.10));
+  if(costo){ var cu = Math.max(0.01, p.precio-costo), co = costo*pPierde; prop = Math.min(0.95, Math.max(0.05, cu/(cu+co))); }
+  var q = Math.max(0, Math.round(mu + zDe(prop)*sd - sp));
+  return {q:q, alcanza:alcanza, dProx:dProx, ciclo:ciclo, cobertura:cobertura, capado:capado, vida:vida,
+          prop:prop, tendencia:pr.tendencia, aprendiendo:(pr.n<7 || !ciclo.aprendido), sinCosto:!costo};
+}
+function cantidadFinal(p){
+  if(S.ajustes.hasOwnProperty(p.id)) return S.ajustes[p.id];
+  var s = sugerencia(p); return s.q || 0;
+}
+function cuandoTxt(k){ return k<=0 ? 'hoy' : (k===1 ? 'mañana' : (k<=6 ? 'el '+DIAS[diaSemana(sumarDias(hoyStr(),k))] : 'en '+k+' días')); }
+function alcanzaTxt(k){
+  if(k<=0) return 'Ya no te alcanza para hoy.';
+  if(k===1) return 'Te alcanza solo para hoy.';
+  if(k>=14) return 'Te alcanza para más de dos semanas.';
+  return 'Te alcanza hasta '+cuandoTxt(k-1)+'.';
+}
+// Una sola frase extra, la más importante
+function motivoTxt(p, s){
+  if(s.capado) return 'Se te malogra en unos '+s.vida+' días: compra solo para esos días.';
+  if(p.estado==='ofertar') return 'Lo que está en “Ofertar hoy” solo cuenta para hoy.';
+  if(p.estado==='merma') return 'Lo marcado como merma no cuenta.';
+  if(s.tendencia>0.5) return 'Tus ventas están subiendo.';
+  if(s.tendencia<-0.5) return 'Tus ventas están bajando.';
+  if(s.sinCosto) return 'Di a cuánto lo compras para afinar la sugerencia.';
+  if(s.prop<0.4) return 'Se malogra rápido: mejor quedarse un poco corto.';
+  if(s.prop>0.7) return 'Te deja buena ganancia y aguanta: conviene tener un poco de más.';
+  return '';
+}
+
+/* ---------- Intérprete de frases ---------- */
+function normalizar(txt){
+  var s = String(txt||'').toLowerCase()
+    .replace(/½/g,' 0.5 ').replace(/¼/g,' 0.25 ').replace(/¾/g,' 0.75 ');
+  s = s.replace(/(^|[^a-z])s\/\.?\s*(\d+(?:[.,]\d+)?)/g, '$1 $2 soles ');   // "S/ 4" -> "4 soles"
+  s = s.replace(/(\d+)\s*\/\s*(\d+)/g, function(m,a,b){ return Number(b)>0 ? ' '+(a/b)+' ' : m; });
+  s = s.replace(/(\d),(\d)/g, '$1.$2');
+  s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  s = s.replace(/(\d)\.(\d)/g, '$1#$2').replace(/[^a-z0-9#]+/g, ' ').replace(/#/g, '.');
+  s = s.replace(/(\d)([a-z])/g, '$1 $2').replace(/([a-z])(\d)/g, '$1 $2');
+  return s.trim().replace(/\s+/g, ' ');
+}
+var UNIDAD_DE = {}, SOLES = {};
+function plural(w){
+  if(/[aeiou]$/.test(w)) return /[iu]$/.test(w) ? [w+'s', w+'es'] : [w+'s'];
+  if(/s$/.test(w)) return [w];
+  if(/z$/.test(w)) return [w.slice(0,-1)+'ces'];
+  return [w+'es'];
+}
+var CONECTOR = {de:1,la:1,del:1,el:1};
+function variantes(frase){   // "papa amarilla" -> + "papas amarilla", "papas amarillas"
+  var w = frase.split(' '), out = [frase];
+  plural(w[0]).forEach(function(p0){
+    out.push([p0].concat(w.slice(1)).join(' '));
+    if(w.length>1){
+      var todas = [p0].concat(w.slice(1).map(function(x){ return CONECTOR[x] ? x : plural(x)[0]; }));
+      out.push(todas.join(' '));
+    }
+  });
+  return out;
+}
+(function prepararDicc(){
+  for(var k in DICC.verbos){ DICC.verbos[k] = DICC.verbos[k].map(normalizar); }
+  CATALOGO.forEach(function(c){
+    var lista = [];
+    c.alias.map(normalizar).forEach(function(a){ variantes(a).forEach(function(v){ if(lista.indexOf(v)<0) lista.push(v); }); });
+    DICC.productos[c.id] = lista;
+  });
+  for(var u in DICC.unidades){ DICC.unidades[u].palabras.forEach(function(w){ UNIDAD_DE[normalizar(w)] = u; }); }
+  DICC.soles.forEach(function(w){ SOLES[normalizar(w)] = true; });
+})();
+function unidadDe(w){ return w!=null && UNIDAD_DE.hasOwnProperty(w) ? UNIDAD_DE[w] : null; }
+function esPorKilo(u){ return !u || DICC.unidades[u].kg!=null; }
+function unidadTxt(u, n){ var U = DICC.unidades[u]; return n===1 ? U.txt[0] : U.txt[1]; }
+function esDigito(w){ return w!=null && /^\d+(\.\d+)?$/.test(w); }
+function esNumPalabra(w){ return esDigito(w) || !!(NUM.uni[w]||NUM.esp[w]||NUM.dec[w]||NUM.cen[w]); }
+
+function leerNumero(t, i){
+  var w = t[i]; if(w==null) return null;
+  if(esDigito(w)) return {v:parseFloat(w), n:1};
+  var v = 0, j = i, ok = false;
+  if(NUM.cen[t[j]]){ v += NUM.cen[t[j]]; j++; ok = true; }
+  else if(t[j]==='ciento' && esNumPalabra(t[j+1]) && !esDigito(t[j+1])){ v += 100; j++; ok = true; }
+  if(NUM.dec[t[j]]){ v += NUM.dec[t[j]]; j++; ok = true; if(t[j]==='y' && NUM.uni[t[j+1]]){ v += NUM.uni[t[j+1]]; j += 2; } }
+  else if(NUM.esp[t[j]]){ v += NUM.esp[t[j]]; j++; ok = true; }
+  else if(NUM.uni[t[j]]){ v += NUM.uni[t[j]]; j++; ok = true; }
+  if(t[j]==='mil'){ v = (ok?v:1)*1000; j++; ok = true; var r = leerNumero(t, j); if(r && !esDigito(t[j])){ v += r.v; j += r.n; } }
+  return ok ? {v:v, n:j-i} : null;
+}
+function leerFraccion(t, j){
+  if(t[j]!=='y') return null;
+  var a = t[j+1], b = t[j+2];
+  if(a==='medio'||a==='media') return {v:0.5, n:2};
+  if(a==='cuarto') return {v:0.25, n:2};
+  if((a==='un'||a==='una') && b==='cuarto') return {v:0.25, n:3};
+  if(a==='tres' && b==='cuartos') return {v:0.75, n:3};
+  return null;
+}
+// Lee una cantidad que empieza en t[i]: "dos kilos y medio", "medio kilo", "un cuarto", "kilo y medio", "un cajón de 25 kilos"
+function leerCantidad(t, i){
+  var v, j = i, frac = false, peso = null;
+  var n = leerNumero(t, i);
+  if(n){
+    v = n.v; j = i+n.n;
+    if(t[j]==='cuarto'||t[j]==='cuartos'){ v = v*0.25; j++; frac = true; }
+    else if((t[j]==='medio'||t[j]==='media') && v===1){ v = 0.5; j++; frac = true; }
+  }
+  else if(t[i]==='medio'||t[i]==='media'){ v = 0.5; j = i+1; frac = true; }
+  else if(unidadDe(t[i]) && t[i].length>2){ v = 1; }           // "kilo y medio", "cajón de palta"
+  else return null;
+  var f = leerFraccion(t, j); if(f){ v += f.v; j += f.n; frac = true; }
+  var k = j; if(t[k]==='de' && unidadDe(t[k+1])) k++;
+  var u = unidadDe(t[k]);
+  if(u){
+    j = k+1;
+    var f2 = leerFraccion(t, j); if(f2){ v += f2.v; j += f2.n; }
+    if(DICC.unidades[u].kg==null && t[j]==='de'){             // "un cajón de 25 kilos"
+      var nn = leerNumero(t, j+1), u2 = nn ? unidadDe(t[j+1+nn.n]) : null;
+      if(u2 && DICC.unidades[u2].kg!=null){ peso = nn.v*DICC.unidades[u2].kg; j = j+2+nn.n; }
+    }
+  }
+  return {v:v, unidad:u, frac:frac, peso:peso, n:j-i};
+}
+function buscarCantidad(t){
+  var primera = null;
+  for(var i=0;i<t.length;i++){
+    var c = leerCantidad(t, i);
+    if(c){ c.i = i; if(c.unidad) return c; if(!primera) primera = c; i += c.n-1; }
+  }
+  return primera;
+}
+
+/* ---------- Diccionario aprendido de cada puesto ----------
+   Cuando el comerciante corrige el producto o el movimiento, se guarda la palabra que usó.
+   Tiene prioridad sobre el diccionario general. Se ve y se quita en "Frases escuchadas". */
+var LS_APRENDIDO = 'frescoplan.aprendido';
+var APRENDIDO = leerLS(LS_APRENDIDO, {productos:{}, verbos:{}});   // {alias normalizado: id o tipo}
+if(!APRENDIDO.productos) APRENDIDO.productos = {}; if(!APRENDIDO.verbos) APRENDIDO.verbos = {};
+var USAR_APRENDIDO = true;   // las pruebas lo apagan para medir solo el diccionario general
+function mapaAprendido(g){ var m = {}; for(var a in APRENDIDO[g]){ var k = APRENDIDO[g][a]; (m[k] = m[k]||[]).push(a); } return m; }
+var RELLENO = {de:1,del:1,la:1,el:1,los:1,las:1,un:1,una:1,unos:1,unas:1,y:1,a:1,al:1,por:1,me:1,se:1,te:1,le:1,les:1,nos:1,lo:1,
+  he:1,ha:1,han:1,hemos:1,habia:1,yo:1,ya:1,hoy:1,ahorita:1,mi:1,mis:1,casero:1,casera:1,cliente:1,clienta:1,en:1,que:1,para:1,
+  con:1,todo:1,toda:1,mas:1,esta:1,estoy:1,manana:1,tarde:1,senora:1,senor:1,pe:1,oe:1,oye:1,medio:1,media:1,cuarto:1,cuartos:1,centimos:1};
+function esRelleno(w){ return RELLENO[w] || esNumPalabra(w) || unidadDe(w) || SOLES[w] || buscarVerbo([w]) || w.length<2; }
+function palabrasDe(id){ var s = {}; (DICC.productos[id]||[]).forEach(function(a){ a.split(' ').forEach(function(w){ s[w] = 1; }); }); return s; }
+// Palabra del verbo: lo que va antes de la cantidad, sin relleno ni palabras del producto. Solo una palabra.
+function candidatoVerbo(r, prodId){
+  var t = r.tokens||[], antes = r.qIni>=0 ? t.slice(0, r.qIni) : t, fuera = palabrasDe(prodId);
+  var w = antes.filter(function(x){ return !esRelleno(x) && !fuera[x]; });
+  return w.length ? w[0] : null;
+}
+// Nombre del producto: lo que va después de la cantidad, recortando relleno al inicio y al final (hasta 4 palabras).
+function candidatoProducto(r, verbo){
+  var t = r.tokens||[], d = r.qIni>=0 ? t.slice(r.qFin) : t.slice();
+  if(verbo) d = d.filter(function(x){ return x!==verbo; });
+  while(d.length && esRelleno(d[0])) d.shift();
+  while(d.length && esRelleno(d[d.length-1])) d.pop();
+  return (d.length && d.length<=4) ? d.join(' ') : null;
+}
+function aprendizaje(sh){
+  var r = sh.r, out = {};
+  if(!r) return out;
+  if(!r.tipo && sh.tipo){ var v = candidatoVerbo(r, sh.prod); if(v && APRENDIDO.verbos[v]!==sh.tipo) out.verbo = v; }
+  if(sh.prod && !r.prod){ var a = candidatoProducto(r, out.verbo); if(a && APRENDIDO.productos[a]!==sh.prod) out.alias = a; }
+  return out;
+}
+function aprendizajeTxt(ap, sh){
+  var x = [];
+  if(ap.verbo) x.push('“'+ap.verbo+'” = '+TIPO[sh.tipo]);
+  if(ap.alias) x.push('“'+ap.alias+'” = '+nombreProd(sh.prod));
+  return x.join('; ');
+}
+var PREP = {a:1,en:1,por:1,x:1}, PER = {el:1,la:1,por:1,x:1,cada:1,al:1};
+function leerPor(t, e){ var u = PER[t[e]] ? unidadDe(t[e+1]) : null; return u ? {u:u, n:2} : null; }
+// Precio: "a 4 soles el kilo", "a 3 soles con 50", "a 4 lucas", "S/ 8", "a cuatro cincuenta el kilo", "por 40 soles" (total)
+function extraerPrecio(t){
+  for(var k=0;k<t.length;k++){
+    if(!SOLES[t[k]]) continue;
+    var s = -1, v = 0;
+    for(var a=Math.max(0,k-6); a<k; a++){ var n = leerNumero(t, a); if(n && a+n.n===k){ s = a; v = n.v; break; } }
+    if(s<0) continue;
+    var e = k+1;
+    if(t[e]==='con'){ var c = leerNumero(t, e+1); if(c && c.v<100){ v += c.v/100; e += 1+c.n; } }
+    else { var c2 = leerNumero(t, e); if(c2 && c2.v<100 && !unidadDe(t[e+c2.n])){ v += c2.v/100; e += c2.n; } }
+    if(t[e]==='centimos') e++;
+    var r = leerPor(t, e);
+    var desde = PREP[t[s-1]] ? s-1 : s;
+    return {v:v, u:r ? r.u : 'kilo', total:(!r && t[s-1]==='por'), desde:desde, hasta:e+(r?r.n:0)};
+  }
+  for(var i=0;i<t.length;i++){
+    if(t[i]!=='a' && t[i]!=='en') continue;
+    var m = leerNumero(t, i+1); if(!m) continue;
+    var v2 = m.v, e2 = i+1+m.n;
+    var cc = leerNumero(t, e2);
+    if(cc && cc.v<100 && leerPor(t, e2+cc.n)){ v2 += cc.v/100; e2 += cc.n; }
+    var r2 = leerPor(t, e2);
+    if(r2) return {v:v2, u:r2.u, total:false, desde:i, hasta:e2+r2.n};
+  }
+  return null;
+}
+/* Conjugaciones: se revisa palabra por palabra si no hubo una frase exacta de DICC.verbos.
+   Cubre "he vendido", "hemos jalado", "estoy vendiendo", "ha llegado", "se ha malogrado", etc. */
+var VERBO_RE = {
+  venta:  [/^vend(o|es|e|emos|en|i|iste|io|imos|ieron|ia|ian|ido|ida|idos|idas|er|iendo)$/,
+           /^despach(o|as|a|amos|an|e|aste|aron|ado|ada|ados|ar|ando)$/, /^sal(io|ieron|ido)$/],
+  compra: [/^compr(e|o|amos|aron|ado|ada|ados|adas|ar|ando|aste)$/, /^traj(e|imos|eron|o)$/, /^tra(igo|ido|ida|idos|er|emos)$/,
+           /^jal(e|o|amos|aron|ado|ar)$/, /^recib(i|o|imos|ieron|ido|ir)$/, /^lleg(o|a|an|aron|ado|ada)$/],
+  merma:  [/^tir(e|o|amos|aron|ado|ada|ados|adas|ar)$/, /^bot(e|o|amos|aron|ado|ada|ados|adas|ar)$/,
+           /^malogr(o|a|an|e|aron|ado|ada|ados|adas)$/, /^pudr(io|ieron|e|en|ido|ida)$/, /^podr(ido|ida|idos|idas)$/,
+           /^dan(o|aron|ado|ada|ados|adas)$/, /^perd(i|imos|io|ieron|ido|ida)$/, /^perder$/, /^mermas?$/]
+};
+var A_MI = {me:1,nos:1,le:1,les:1}, AUX = {ha:1,han:1,habia:1,habian:1,a:1};
+function buscarVerbo(t){
+  for(var i=0;i<t.length;i++){
+    var w = t[i];
+    for(var tipo in VERBO_RE){
+      if(!VERBO_RE[tipo].some(function(re){ return re.test(w); })) continue;
+      // "me compraron", "me han comprado", "nos compró": el cliente compró = venta ("me compré" sigue siendo compra)
+      if(tipo==='compra' && /^compr/.test(w) && w!=='compre' &&
+         (A_MI[t[i-1]] || (AUX[t[i-1]] && A_MI[t[i-2]]))) return 'venta';
+      return tipo;
+    }
+  }
+  return null;
+}
+function buscarFrase(pad, mapa){
+  var best = null, len = 0;
+  for(var k in mapa){ mapa[k].forEach(function(f){ if(f.length>len && pad.indexOf(' '+f+' ')>=0){ best = k; len = f.length; } }); }
+  return best;
+}
+
+function interpretar(texto){
+  var norm = normalizar(texto), t = norm ? norm.split(' ') : [];
+  var r = {texto:texto, tipo:null, prod:null, cant:null, unidad:null, kg:null, pesoDicho:null,
+           precio:null, precioBruto:null, precioUnidad:'kilo', precioTotal:null, notas:[], faltan:[], resultado:'no'};
+  // Google a veces junta "vendí dos" en "vendidos": "vendidos kilos de tomate" = "vendí 2 kilos"
+  for(var vi=0; vi<t.length; vi++){
+    if((t[vi]==='vendidos'||t[vi]==='vendidas') && (unidadDe(t[vi+1]) || t[vi+1]==='de')){
+      t.splice(vi, 1, 'vendi', '2'); r.notas.push('Escuché “vendidos”; lo tomé como “vendí dos”.');
+    }
+  }
+  var pad = ' '+t.join(' ')+' ';
+  r.tipo = (USAR_APRENDIDO && buscarFrase(pad, mapaAprendido('verbos'))) || buscarFrase(pad, DICC.verbos) || buscarVerbo(t);
+  // "vendí dos" suena como "veintidós": si no hay verbo y la frase empieza con 21–29, se toma como venta
+  if(!r.tipo){
+    var i0 = ({yo:1,ya:1,hoy:1,ahorita:1}[t[0]]) ? 1 : 0;
+    var n0 = leerNumero(t, i0);
+    if(n0 && n0.n===1 && n0.v>=21 && n0.v<=29 && n0.v===Math.round(n0.v)){
+      r.tipo = 'venta'; r.adivinado = true;
+      r.notas.push('Escuché “'+n0.v+'”; lo tomé como “vendí '+(n0.v-20)+'”. Corrígelo si no es así.');
+      t[i0] = String(n0.v-20);
+    }
+  }
+  r.prod = (USAR_APRENDIDO && buscarFrase(pad, mapaAprendido('productos'))) || buscarFrase(pad, DICC.productos);
+
+  var pr = extraerPrecio(t);
+  if(pr){ t = t.slice(0, pr.desde).concat(t.slice(pr.hasta)); }
+
+  var c = buscarCantidad(t);
+  r.tokens = t; r.qIni = c ? c.i : -1; r.qFin = c ? c.i+c.n : -1;
+  if(c){
+    r.cant = redondear(c.v);
+    var usual = r.prod && CAT[r.prod].unidad;
+    r.unidad = c.unidad || (c.frac ? 'kilo' : (usual || 'kilo'));
+    if(!c.unidad && !c.frac) r.notas.push(usual ? 'Lo conté por '+unidadTxt(usual,2)+'.' : 'No dijiste la unidad: puse kilos.');
+    var U = DICC.unidades[r.unidad];
+    if(U.kg!=null){ r.kg = redondear(r.cant*U.kg); }
+    else {
+      var pz = c.peso || (r.prod && PESOS[r.prod+'|'+r.unidad]) || null;
+      if(c.peso){ r.pesoDicho = c.peso; r.notas.push('Dijiste que 1 '+unidadTxt(r.unidad,1)+' pesa '+fmt(c.peso)+' kg.'); }
+      if(pz) r.kg = redondear(r.cant*pz);
+    }
+  }
+
+  if(pr){
+    if(pr.total){
+      r.precioTotal = pr.v;
+      if(r.kg){ r.precio = Math.round(pr.v/r.kg*100)/100; r.notas.push('Total '+soles(pr.v)+': son '+soles(r.precio)+' por kilo.'); }
+    } else if(esPorKilo(pr.u)){
+      r.precio = pr.u==='gramo' ? pr.v*1000 : pr.v;
+    } else {
+      r.precioBruto = pr.v; r.precioUnidad = pr.u;
+      var pzu = (pr.u===r.unidad && r.kg) ? r.kg/r.cant : (r.prod && PESOS[r.prod+'|'+pr.u]);
+      if(pzu) r.precio = Math.round(pr.v/pzu*100)/100;
+      else if(pr.u!==r.unidad) r.notas.push('Dijiste el precio por '+unidadTxt(pr.u,1)+': escribe el precio por kilo.');
+    }
+  }
+
+  if(!r.tipo) r.faltan.push('movimiento');
+  if(!r.prod) r.faltan.push('producto');
+  if(r.cant==null) r.faltan.push('cantidad');
+  r.resultado = r.faltan.length===0 ? 'si' : (r.faltan.length===3 ? 'no' : 'parcial');
+  if(r.cant!=null && r.kg==null) r.faltan.push('peso de '+unidadTxt(r.unidad,1));
+  return r;
+}
+function puntaje(r){ return (r.tipo?1:0)+(r.prod?1:0)+(r.cant!=null?1:0)+(r.precio!=null?0.1:0)-(r.adivinado?0.05:0); }
+
+/* ---------- Pruebas del intérprete (abrir con ?test) ---------- */
+var CASOS = [
+  ['Vendí 5 kilos de tomate', {tipo:'venta',prod:'tomate',cant:5,unidad:'kilo',kg:5,precio:null}],
+  ['vendi dos kilos y medio de tomate', {tipo:'venta',prod:'tomate',kg:2.5}],
+  ['Despaché medio kilo de palta fuerte', {tipo:'venta',prod:'palta',kg:0.5}],
+  ['Salió kilo y medio de limón sutil', {tipo:'venta',prod:'limon',kg:1.5}],
+  ['Me compraron 3 kg de cebolla a 2.50 soles el kilo', {tipo:'venta',prod:'cebolla',kg:3,precio:2.5}],
+  ['Despaché dos kilos y medio de palta fuerte a 8 soles el kilo', {tipo:'venta',prod:'palta',kg:2.5,precio:8}],
+  ['Vendí 3 kilos de palta a S/ 8', {tipo:'venta',prod:'palta',kg:3,precio:8}],
+  ['Vendí 2,5 kilos de tomate a 3 soles con 50', {kg:2.5,precio:3.5}],
+  ['Vendí 10 kilos de tomate a cuatro cincuenta el kilo', {kg:10,precio:4.5}],
+  ['Vendí 4 kilos de limón a 4 lucas el kilo', {prod:'limon',kg:4,precio:4}],
+  ['Vendí 5 kilos de palta por 40 soles', {kg:5,precio:8}],
+  ['Compré 20 kilos de palta', {tipo:'compra',prod:'palta',kg:20}],
+  ['Traje veinte kilos de cebolla roja a 2 soles', {tipo:'compra',prod:'cebolla',kg:20,precio:2}],
+  ['Jalé treinta y cinco kilos de tomate', {tipo:'compra',prod:'tomate',kg:35}],
+  ['Compré ciento veinte kilos de cebolla', {tipo:'compra',kg:120}],
+  ['Me llegó un cajón de tomate', {tipo:'compra',prod:'tomate',cant:1,unidad:'cajon'}],
+  ['Me llegó un cajón de 25 kilos de tomate', {tipo:'compra',prod:'tomate',cant:1,unidad:'cajon',kg:25}],
+  ['Me llegaron dos jabas de plátano', {tipo:'compra',prod:'platano',cant:2,unidad:'jaba'}],
+  ['Compré un ciento de limones', {tipo:'compra',prod:'limon',cant:1,unidad:'ciento'}],
+  ['Tiré 2 kg de plátano por merma', {tipo:'merma',prod:'platano',kg:2}],
+  ['Boté un cuarto de limón', {tipo:'merma',prod:'limon',kg:0.25}],
+  ['Se malogró medio kilo de palta', {tipo:'merma',prod:'palta',kg:0.5}],
+  ['Se pudrieron 500 gramos de tomate', {tipo:'merma',prod:'tomate',unidad:'gramo',kg:0.5}],
+  ['Vendí tres cuartos de kilo de cebolla', {tipo:'venta',prod:'cebolla',kg:0.75}],
+  ['Vendí cinco de tomate', {tipo:'venta',prod:'tomate',kg:5}],
+  ['Vendí 5 kilos', {tipo:'venta',prod:null,kg:5}],
+  ['Me llegó una arroba de papa', {tipo:'compra',prod:'papa_blanca',cant:1,unidad:'arroba'}],
+  ['Vendí 2 kilos de papas amarillas', {tipo:'venta',prod:'papa_amarilla',kg:2}],
+  ['Compré un saco de papa huayro', {tipo:'compra',prod:'papa_huayro',cant:1,unidad:'saco'}],
+  ['Vendí 3 lechugas', {tipo:'venta',prod:'lechuga',cant:3,unidad:'unidad'}],
+  ['Vendí dos atados de culantro', {tipo:'venta',prod:'culantro',cant:2,unidad:'atado'}],
+  ['Compré 10 kilos de cebolla china', {tipo:'compra',prod:'cebolla_china',kg:10}],
+  ['Vendí medio kilo de ají limo', {tipo:'venta',prod:'aji_limo',kg:0.5}],
+  ['Vendí 3 kilos de mandarinas a 5 soles', {tipo:'venta',prod:'mandarina',kg:3,precio:5}],
+  ['Se malograron 4 kilos de fresas', {tipo:'merma',prod:'fresa',kg:4}],
+  ['Me llegó una docena de piñas', {tipo:'compra',prod:'pina',cant:1,unidad:'docena'}],
+  ['Vendí kilo y medio de maracuyá', {tipo:'venta',prod:'maracuya',kg:1.5}],
+  ['Compré 15 kilos de zapallo loche', {tipo:'compra',prod:'loche',kg:15}],
+  ['Vendí 6 choclos', {tipo:'venta',prod:'choclo',cant:6,unidad:'unidad'}],
+  // Conjugaciones
+  ['He vendido 2 kg de pepino dulce', {tipo:'venta',prod:'pepino_dulce',kg:2}],
+  ['Hemos vendido tres kilos de papa', {tipo:'venta',prod:'papa_blanca',kg:3}],
+  ['Ya vendimos 5 kilos de limón', {tipo:'venta',prod:'limon',kg:5}],
+  ['Estoy vendiendo la palta a 9 soles', {tipo:'venta',prod:'palta',precio:9,cant:null}],
+  ['Me han comprado 4 kilos de tomate', {tipo:'venta',prod:'tomate',kg:4}],
+  ['Nos compraron 6 kilos de mango', {tipo:'venta',prod:'mango',kg:6}],
+  ['Le compré 20 kilos de cebolla a mi casero', {tipo:'compra',prod:'cebolla',kg:20,precio:null}],
+  ['Ha llegado un cajón de mango', {tipo:'compra',prod:'mango',cant:1,unidad:'cajon'}],
+  ['Hemos jalado 30 kilos de papa amarilla', {tipo:'compra',prod:'papa_amarilla',kg:30}],
+  ['He traído 10 kilos de zanahoria', {tipo:'compra',prod:'zanahoria',kg:10}],
+  ['He tirado medio kilo de fresa', {tipo:'merma',prod:'fresa',kg:0.5}],
+  ['Se ha malogrado un kilo de lechuga', {tipo:'merma',prod:'lechuga',kg:1}],
+  ['Se echaron a perder 2 kilos de plátano', {tipo:'merma',prod:'platano',kg:2}],
+  ['Se han podrido 3 kilos de papaya', {tipo:'merma',prod:'papaya',kg:3}],
+  // "vendí dos" que Google escribe como "veintidós" o "vendidos"
+  ['22 kilos de tomate', {tipo:'venta',prod:'tomate',kg:2}],
+  ['23 kilos de palta', {tipo:'venta',prod:'palta',kg:3}],
+  ['Veinticuatro kilos de cebolla', {tipo:'venta',prod:'cebolla',kg:4}],
+  ['Yo 25 kilos de limón a 4 soles', {tipo:'venta',prod:'limon',kg:5,precio:4}],
+  ['Vendidos kilos de tomate', {tipo:'venta',prod:'tomate',kg:2}],
+  ['Compré 22 kilos de tomate', {tipo:'compra',prod:'tomate',kg:22}],
+  ['Hola, buenos días', {tipo:null,prod:null,cant:null}]
+];
+function correrPruebas(){
+  USAR_APRENDIDO = false;
+  try{ return correrCasos(); } finally { USAR_APRENDIDO = true; }
+}
+function correrCasos(){
+  return CASOS.map(function(c){
+    var r = interpretar(c[0]), mal = [];
+    for(var k in c[1]){
+      var a = c[1][k], b = r[k];
+      if(k==='kg' && c[1].unidad && DICC.unidades[c[1].unidad].kg==null && !/de \d+ kilos/.test(c[0])) continue;
+      var ok = (typeof a==='number' && typeof b==='number') ? Math.abs(a-b)<0.001 : a===b;
+      if(!ok) mal.push(k+': esperaba '+a+', salió '+b);
+    }
+    return {frase:c[0], ok:!mal.length, mal:mal};
+  });
+}
+
+/* ---------- Iconos ---------- */
+var IC = {
+  mic:function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';},
+  box:function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>';},
+  cart:function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11l2-8H6"/></svg>';},
+  chart:function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';},
+  crown:function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="'+c+'"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8z"/></svg>';},
+  chat:function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a8 8 0 0 0-8 8c0 1.6.5 3 1.3 4.2L4 20l4.9-1.2A8 8 0 1 0 12 3z"/></svg>';}
+};
+
+/* ---------- Render ---------- */
+var screenEl = document.getElementById('screen');
+var layerEl = document.getElementById('layer');
+var toastEl = document.getElementById('toast');
+var planBtn = document.getElementById('planBtn');
+var toastTimer = null;
+
+function renderChrome(){
+  planBtn.innerHTML = IC.crown('#ffd36b',16) + (S.trial ? 'Prueba' : 'Gratis');
+  guardarEstado();
+  var tabs = document.querySelectorAll('.tab');
+  var defs = {
+    voz:['Voz',IC.mic], stock:['Stock',IC.box], comprar:['Comprar',IC.cart], resumen:['Resumen',IC.chart]
+  };
+  for(var i=0;i<tabs.length;i++){
+    var t = tabs[i], k = t.getAttribute('data-tab'), on = (S.tab===k);
+    t.setAttribute('aria-selected', on ? 'true':'false');
+    t.innerHTML = defs[k][1](on ? '#2b7a58' : '#5d6b64', 24) + '<span>'+defs[k][0]+'</span>';
+  }
+}
+
+function nombreProd(id){ var p = prod(id) || CAT[id]; return p ? p.nombre : (id||''); }
+function fechaCorta(iso){
+  var d = new Date(iso), hoy = new Date();
+  var h = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  return d.toDateString()===hoy.toDateString() ? h : String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+h;
+}
+
+function viewFrases(){
+  var lista = '';
+  if(S.frasesOpen){
+    lista = FR.length ? '<ul class="flist">'+FR.slice(0,15).map(function(e){
+      var g = e.guardado, det;
+      if(e.estado==='guardado') det = 'Guardado: '+TIPO[g.tipo]+' · '+esc(nombreProd(g.prod))+' · '+fmt(g.kg)+' kg'+(g.precio?' · '+soles(g.precio)+'/kg':'')+(e.corregido?' · lo corrigió':'');
+      else if(e.estado==='descartado') det = 'Descartada';
+      else det = 'Sin confirmar';
+      return '<li><div class="fl"><span class="tag '+e.resultado+'">'+RES[e.resultado]+'</span><time>'+fechaCorta(e.fecha)+'</time></div>'+
+        '<div>“'+esc(e.texto)+'”</div><small>'+det+(e.faltan?' · Faltó: '+esc(e.faltan):'')+'</small></li>';
+    }).join('')+'</ul>'+(FR.length>15?'<p class="note">Se muestran las 15 últimas. El archivo trae las '+FR.length+'.</p>':'')
+    : '<p class="note">Aún no hay frases. Habla o escribe una frase para empezar.</p>';
+    var ap = [];
+    for(var a in APRENDIDO.verbos) ap.push({g:'verbos', a:a, txt:TIPO[APRENDIDO.verbos[a]]});
+    for(var b in APRENDIDO.productos) ap.push({g:'productos', a:b, txt:nombreProd(APRENDIDO.productos[b])});
+    lista += '<div style="display:grid;gap:4px"><b style="font-size:15px">Palabras aprendidas ('+ap.length+')</b>'+
+      (ap.length ? '<ul class="flist" style="margin:0">'+ap.map(function(x){
+        return '<li><div class="fl"><span>“'+esc(x.a)+'” = <b>'+esc(x.txt)+'</b></span>'+
+          '<button class="link" type="button" data-act="olvidar" data-g="'+x.g+'" data-a="'+esc(x.a)+'" style="margin-left:auto;color:var(--gris)">Quitar</button></div></li>';
+      }).join('')+'</ul>'
+      : '<p class="note" style="margin:0">Cuando corrijas un producto o un movimiento que no entendí, guardaré la palabra que usaste.</p>')+'</div>';
+    lista += '<p class="note">Se guardan solo en este teléfono y no se borran al reiniciar la demo. Sirven para ampliar el diccionario con la jerga real.</p>'+
+      '<div class="two"><button class="btn" type="button" data-act="csv"'+(FR.length?'':' disabled')+'>Descargar CSV</button>'+
+      '<button class="btn ghost" type="button" data-act="frases-borrar"'+(FR.length?'':' disabled')+'>Borrar lista</button></div>';
+  }
+  return '<section class="card" aria-label="Frases escuchadas" style="display:grid;gap:8px">'+
+    '<div class="row"><b>Frases escuchadas</b><span class="chip-count">'+FR.length+'</span></div>'+
+    '<button class="link" type="button" data-act="frases-toggle" style="justify-self:start" aria-expanded="'+S.frasesOpen+'">'+(S.frasesOpen?'Ocultar lista':'Ver lista')+'</button>'+
+    lista+'</section>';
+}
+
+function viewVoz(){
+  var opts = S.products.map(function(p){
+    return '<option value="'+p.id+'"'+(S.manual.prod===p.id?' selected':'')+'>'+p.nombre+'</option>';
+  }).join('');
+  var quick = FRASES.map(function(f,i){
+    return '<button class="qbtn" type="button" data-act="quick" data-i="'+i+'">'+IC.mic('#2b7a58',18)+'<span>“'+f+'”</span></button>';
+  }).join('');
+  var logs = S.registros.slice(0,4).map(function(r){
+    return '<li><span class="tag '+r.tipo+'">'+TIPO[r.tipo]+'</span><span>'+esc(r.texto)+(r.ej?' <span class="ex">(ejemplo)</span>':'')+'</span><time>'+r.hora+'</time></li>';
+  }).join('');
+  var micZona;
+  if(VOZ_OK){
+    micZona = '<button class="mic-btn'+(S.listening?' on':'')+'" type="button" data-act="mic" aria-label="'+(S.listening?'Terminar de hablar':'Tocar para hablar')+'">'+IC.mic('#ffffff',44)+'</button>'+
+      (S.listening
+        ? '<div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="say">Escuchando…</div>'+
+          '<div class="parcial" id="parcial">'+esc(S.parcial||'…')+'</div><div class="example">Toca otra vez cuando termines</div>'
+        : '<div class="say">Toca el micrófono y dilo como siempre</div><div class="example">Ejemplo: “Vendí dos kilos y medio de tomate a 4 soles”</div>')+
+      (S.vozErr ? '<p class="err" role="alert" style="margin-top:8px">'+S.vozErr+'</p>' : '');
+  } else {
+    micZona = '<div class="aviso" role="note">'+(SR
+      ? 'El micrófono solo funciona si abres la app desde https (GitHub Pages) o desde localhost. Mientras, escribe la frase aquí abajo.'
+      : 'Este navegador no reconoce voz. Abre la app en Chrome para hablar, o escribe la frase aquí abajo.')+'</div>';
+  }
+  return ''+
+  '<section class="card voice" aria-label="Módulo de voz">'+
+    '<div class="eyebrow">Módulo de voz</div>'+
+    micZona+
+    '<div class="escribir"><label for="frase">'+(VOZ_OK?'¿Prefieres escribir la frase?':'Escribe lo que hiciste')+'</label>'+
+      '<div class="erow"><input id="frase" class="field" type="text" data-w="frase" autocomplete="off" enterkeyhint="done" placeholder="Ej. vendí 3 kilos de palta" value="'+esc(S.escrito)+'">'+
+      '<button class="btn primary" type="button" data-act="escrito">Listo</button></div></div>'+
+    '<div class="quick"><p>Prueba rápida con un toque:</p>'+quick+'</div>'+
+  '</section>'+
+  '<section class="card" aria-label="Registro manual">'+
+    '<div class="row" style="margin-bottom:10px"><b>Registro manual</b><span class="note">Opción alternativa</span></div>'+
+    '<div class="form">'+
+      '<div class="two">'+
+        '<div><label for="m-tipo">Tipo de movimiento</label><select id="m-tipo" class="field" data-m="tipo">'+
+          '<option value="venta"'+(S.manual.tipo==='venta'?' selected':'')+'>Venta (−)</option>'+
+          '<option value="compra"'+(S.manual.tipo==='compra'?' selected':'')+'>Compra (+)</option>'+
+          '<option value="merma"'+(S.manual.tipo==='merma'?' selected':'')+'>Merma (−)</option></select></div>'+
+        '<div><label for="m-prod">Producto</label><select id="m-prod" class="field" data-m="prod">'+opts+'</select></div>'+
+      '</div>'+
+      '<div class="two">'+
+        '<div><label for="m-qty">Cantidad (kg)</label><input id="m-qty" class="field" data-m="qty" type="number" inputmode="decimal" min="0" step="0.5" placeholder="Ej. 3.5" value="'+esc(S.manual.qty)+'"></div>'+
+        (S.manual.tipo==='merma' ? '' :
+        '<div><label for="m-precio">'+(S.manual.tipo==='compra'?'Precio de compra por kilo (S/)':'Precio de venta por kilo (S/)')+'</label><input id="m-precio" class="field" data-m="precio" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Opcional" value="'+esc(S.manual.precio)+'"></div>')+
+      '</div>'+
+      (S.manual.tipo==='compra' && REF_PRECIOS[S.manual.prod] ? '<p class="note" style="margin:0">Mayorista de referencia: '+refTxt(S.manual.prod)+'</p>' : '')+
+      (S.manualErr?'<p class="err" role="alert">'+S.manualErr+'</p>':'')+
+      '<button class="btn dark full" type="button" data-act="manual-save">Guardar registro</button>'+
+    '</div>'+
+  '</section>'+
+  '<section class="card" aria-label="Últimos registros"><div class="row" style="margin-bottom:10px"><b>Últimos registros de hoy</b></div><ul class="log">'+logs+'</ul></section>'+
+  viewFrases();
+}
+
+function viewStock(){
+  var cards = S.products.map(function(p){
+    var btns = ['fresco','ofertar','merma'].map(function(e){
+      return '<button class="sbtn" type="button" data-act="estado" data-id="'+p.id+'" data-e="'+e+'" aria-pressed="'+(p.estado===e)+'"><i></i>'+ESTADO[e]+'</button>';
+    }).join('');
+    var nota = p.estado==='merma'
+      ? '<div class="note warn">No cuenta como stock vendible.</div>'
+      : (p.estado==='ofertar' ? '<div class="note">Cuenta como vendible. Conviene venderlo hoy.</div>' : '');
+    var ref = REF_PRECIOS[p.id];
+    var precio = S.precioEdit[p.id]
+      ? '<div><label class="note" for="pr-'+p.id+'" style="font-weight:700">Tu precio de venta por kilo (S/)</label>'+
+        '<div class="erow" style="margin-top:4px"><input id="pr-'+p.id+'" class="field" type="number" inputmode="decimal" min="0" step="0.1" value="'+(p.precio!=null?p.precio:'')+'">'+
+        '<button class="btn primary" type="button" data-act="precio-save" data-id="'+p.id+'">Guardar</button></div></div>'
+      : '<div class="pricerow"><span>Precio de venta: <b>'+(p.precio!=null?soles(p.precio)+'/kg':'Sin precio')+'</b>'+(p.precioEj?' <span class="ex">(ejemplo)</span>':'')+'</span>'+
+        '<button class="link" type="button" data-act="precio-edit" data-id="'+p.id+'">'+(p.precio!=null?'Cambiar':'Poner precio')+'</button></div>';
+    var costo = p.costo ? '<div class="note">Tu última compra: <b>'+soles(p.costo)+'/kg</b></div>' : '';
+    if(ref) costo += '<div class="note">Compra mayorista de referencia: '+refTxt(p.id)+'</div>';
+    var base = p.costo || (ref && ref.precio);
+    if(p.precio!=null && base) costo += '<div class="note">Margen aprox.: <b>'+soles(p.precio-base)+' por kilo</b> (frente a '+(p.costo?'tu última compra':'el precio mayorista')+')</div>';
+    costo += '<button class="link" type="button" data-act="quitar" data-id="'+p.id+'" style="justify-self:start;color:var(--gris)">Quitar de mis productos</button>';
+    return '<article class="card prod">'+
+      '<div class="row"><div><div class="type">'+p.tipo+'</div><div class="name">'+p.nombre+'</div></div>'+
+      '<div class="qty"><b>'+fmt(p.stock)+' kg</b><span>en puesto</span></div></div>'+
+      '<div class="state" role="group" aria-label="Estado de '+p.nombre+'">'+btns+'</div>'+nota+precio+costo+
+    '</article>';
+  }).join('');
+  var tv=0, tm=0;
+  S.products.forEach(function(p){ if(p.estado==='merma'){ tm+=p.stock; } else { tv+=p.stock; } });
+  var cupo = S.trial ? 'Plan Completo (prueba): productos ilimitados.' : 'Plan gratuito: '+S.products.length+' de '+LIMITE_GRATIS+' productos.';
+  var agregar = '<section class="card" style="display:grid;gap:8px" aria-label="Agregar producto"><b>Agregar producto</b>'+
+    '<div class="erow"><select id="addSel" class="field" data-add="1" aria-label="Producto para agregar">'+
+    '<option value="" disabled'+(S.agregar?'':' selected')+'>Elige fruta o verdura…</option>'+opcionesCatalogo(S.agregar, true)+'</select>'+
+    '<button class="btn primary" type="button" data-act="add-prod">Agregar</button></div>'+
+    '<p class="note" style="margin:0">'+cupo+' También se agrega solo cuando lo nombras por voz.</p></section>';
+  return '<div class="row"><div><h1 class="h1">Stock vendible</h1><p class="sub">Clasificación de frescura al instante</p></div><span class="chip-count">'+S.products.length+' productos</span></div>'+
+    (S.products.length ? cards : '<p class="note">Aún no tienes productos. Agrega los que vendes.</p>')+agregar+
+    '<div class="totals"><div><b>'+fmt(tv)+' kg</b><span>Stock vendible total</span></div><div><b style="color:var(--rojo)">'+fmt(tm)+' kg</b><span>Marcado como merma</span></div></div>';
+}
+
+function viewComprar(){
+  var items = S.products.map(function(p){ return {p:p, s:sugerencia(p)}; });
+  var rango = function(x){ return x.s.sinPrecio ? 3000 : (x.s.sinDatos ? 2000 : (x.s.q>0 ? 0 : 1000) + x.s.alcanza); };
+  items.sort(function(a,b){ return rango(a)-rango(b); });   // primero lo que se acaba antes
+  var cards = items.map(function(x){
+    var p = x.p, s = x.s;
+    var cab = function(der){ return '<div class="buy"><div><div class="type note">'+p.tipo+'</div><div class="name" style="font-size:19px;font-weight:800">'+p.nombre+'</div></div>'+der+'</div>'; };
+    if(s.sinPrecio) return '<article class="card" style="display:grid;gap:8px">'+cab('')+
+      '<p style="margin:0">Pon tu precio de venta para ver cuánto comprar.</p>'+
+      '<button class="btn primary" type="button" data-act="ir-precio" data-id="'+p.id+'" style="justify-self:start">Poner precio</button></article>';
+    if(s.sinDatos) return '<article class="card" style="display:grid;gap:8px">'+cab('')+
+      '<p style="margin:0">Registra tus ventas de '+p.nombre.toLowerCase()+' por voz y aprenderé cuánto te conviene comprar.</p></article>';
+    var fin = cantidadFinal(p), adj = S.ajustes.hasOwnProperty(p.id);
+    var caja = fin>0
+      ? '<div class="buybox'+(adj?' adj':'')+'"><small>'+(adj?'Tu cantidad':'Compra')+'</small><b>'+fmt(fin)+' kg</b></div>'
+      : '<div class="buybox" style="background:#f4f6f4;color:var(--gris)"><b style="font-size:18px">No compres</b></div>';
+    var motivo = motivoTxt(p, s);
+    var step = S.adjOpen[p.id]
+      ? '<div class="stepper"><button class="s" type="button" data-act="minus" data-id="'+p.id+'" aria-label="Restar 1 kilo">−</button>'+
+        '<output aria-live="polite">'+fmt(fin)+' kg</output>'+
+        '<button class="s" type="button" data-act="plus" data-id="'+p.id+'" aria-label="Sumar 1 kilo">+</button></div>'+
+        (adj?'<button class="link" type="button" data-act="reset-adj" data-id="'+p.id+'">Volver a la sugerencia ('+fmt(s.q)+' kg)</button>':'')
+      : '';
+    return '<article class="card" style="display:grid;gap:8px">'+cab(caja)+
+      '<p style="margin:0;font-weight:700">'+alcanzaTxt(s.alcanza)+'</p>'+
+      (motivo?'<p style="margin:0">'+motivo+'</p>':'')+
+      '<div class="row"><span class="note">Próxima compra: '+cuandoTxt(s.dProx)+(s.aprendiendo?' · <span style="color:var(--ambar);font-weight:700">aún aprendiendo</span>':'')+'</span>'+
+      '<button class="link" type="button" data-act="adj" data-id="'+p.id+'">'+(S.adjOpen[p.id]?'Listo':'Ajustar')+'</button></div>'+
+      step+
+    '</article>';
+  }).join('');
+  return '<div><h1 class="h1">Qué comprar</h1><p class="sub">Según tus ventas, tu stock y su frescura</p></div>'+
+    (S.products.length ? cards : '<p class="note">Agrega tus productos en Stock.</p>')+
+    '<p class="note" style="margin:0">Tú decides: puedes cambiar cualquier cantidad. La sugerencia aprende de lo que registras; ahora incluye 4 semanas de datos de ejemplo.</p>';
+}
+
+/* ---------- Resumen por semana (lunes a domingo) y por día ---------- */
+var DIA_CORTO = ['lun','mar','mié','jue','vie','sáb','dom'];
+var MES = ['ene','feb','mar','abr','may','jun','jul','ago','set','oct','nov','dic'];
+function lunesDe(d){ return sumarDias(d, -((diaSemana(d)+6)%7)); }
+function fechaTxt(d){ var x = new Date(d+'T12:00:00'); return x.getDate()+' '+MES[x.getMonth()]; }
+function solesR(n){ return 'S/ '+Math.round(n).toLocaleString('es-PE'); }
+// Totales de un rango de fechas (incluye ambos extremos). Precio y costo: los guardados en cada registro;
+// si no hay (registros antiguos o de ejemplo), el precio de venta actual y el costo actual o el mayorista.
+function totales(desde, hasta){
+  var r = {ventas:0, ventasKg:0, ganancia:0, compras:0, comprasKg:0, mermaKg:0, merma:0, hayPrecio:false, usaRef:false, sinPrecio:{}, n:0, porProd:{}};
+  S.mov.forEach(function(m){
+    if(m.d<desde || m.d>hasta) return;
+    r.n++;
+    var p = prod(m.prod) || null;
+    var c = m.costo!=null ? m.costo : (p ? costoActual(p) : (REF_PRECIOS[m.prod] && REF_PRECIOS[m.prod].precio) || null);
+    var ref = m.costo==null ? !(p && p.costo) : !!m.costoRef;
+    if(m.tipo==='venta'){
+      r.ventasKg += m.kg; r.porProd[m.prod] = (r.porProd[m.prod]||0)+m.kg;
+      var pv = m.precio!=null ? m.precio : (p ? p.precio : null);
+      if(pv==null){ r.sinPrecio[m.prod] = 1; return; }
+      r.ventas += m.kg*pv; r.hayPrecio = true;
+      if(c!=null){ r.ganancia += m.kg*(pv-c); if(ref) r.usaRef = true; }
+    } else if(m.tipo==='compra'){
+      r.comprasKg += m.kg; if(c!=null){ r.compras += m.kg*c; if(m.costo==null) r.usaRef = true; }
+    } else {
+      r.mermaKg += m.kg; if(c!=null){ r.merma += m.kg*c; r.ganancia -= m.kg*c; if(ref) r.usaRef = true; }
+    }
+  });
+  return r;
+}
+function cambioTxt(a, b){
+  if(!(b>0)) return '';
+  var pct = Math.round((a-b)/b*100);
+  return pct===0 ? ' (igual)' : ' ('+(pct>0?'▲ ':'▼ ')+Math.abs(pct)+' %)';
+}
+function viewResumen(){
+  var hoy = hoyStr(), lunes = sumarDias(lunesDe(hoy), -7*S.resSemana), domingo = sumarDias(lunes, 6);
+  var dias = []; for(var i=0;i<7;i++) dias.push(sumarDias(lunes, i));
+  var sel = S.resDia && S.resDia>=lunes && S.resDia<=domingo ? S.resDia : (S.resSemana===0 ? hoy : domingo);
+  var primera = S.mov.reduce(function(a,m){ return (!a || m.d<a) ? m.d : a; }, null);
+  var hayAntes = primera && primera<lunes;
+
+  // Tira de días: altura de la barra = kilos vendidos ese día
+  var kgDia = dias.map(function(d){ return d>hoy ? 0 : totales(d,d).ventasKg; });
+  var maxKg = Math.max.apply(null, kgDia.concat([1]));
+  var tira = '<div class="semana" role="group" aria-label="Días de la semana">'+dias.map(function(d,i){
+    var fut = d>hoy;
+    return '<button class="dia" type="button" data-act="dia" data-d="'+d+'" aria-pressed="'+(d===sel)+'"'+(fut?' disabled':'')+
+      ' aria-label="'+DIAS[diaSemana(d)]+' '+fechaTxt(d)+'">'+
+      '<i style="height:'+(fut?0:Math.max(3, Math.round(kgDia[i]/maxKg*38)))+'px"></i>'+
+      '<span>'+DIA_CORTO[i]+'</span><small>'+(d===hoy?'hoy':new Date(d+'T12:00:00').getDate())+'</small></button>';
+  }).join('')+'</div>';
+
+  // Detalle del día elegido
+  var t = totales(sel, sel);
+  var fila = function(k, v){ return '<div><span>'+k+'</span><b>'+v+'</b></div>'; };
+  var movDia = S.mov.filter(function(m){ return m.d===sel; });
+  var lista = movDia.length ? '<ul class="log" style="margin-top:4px">'+movDia.slice().reverse().map(function(m){
+      var pv = m.tipo==='venta' && m.precio!=null ? ' · '+soles(m.precio)+'/kg' : (m.tipo==='compra' && m.costo!=null ? ' · '+soles(m.costo)+'/kg' : '');
+      return '<li><span class="tag '+m.tipo+'">'+TIPO[m.tipo]+'</span><span>'+esc(nombreProd(m.prod))+' · '+fmt(m.kg)+' kg'+pv+(m.ej?' <span class="ex">(ejemplo)</span>':'')+'</span>'+(m.h?'<time>'+m.h+'</time>':'')+'</li>';
+    }).join('')+'</ul>' : '<p class="note" style="margin:0">No hay registros este día.</p>';
+  var nombreSel = (sel===hoy ? 'Hoy, ' : '')+DIAS[diaSemana(sel)]+' '+fechaTxt(sel);
+  nombreSel = nombreSel.charAt(0).toUpperCase()+nombreSel.slice(1);
+  var detalle = '<section class="card" style="display:grid;gap:8px" aria-label="Detalle del día"><b style="font-size:17px">'+nombreSel+'</b>'+
+    '<div class="kv">'+
+      fila('Vendiste', (t.hayPrecio?solesR(t.ventas)+' · ':'')+fmt(t.ventasKg)+' kg')+
+      (t.hayPrecio?fila('Ganancia aprox.', (t.ganancia<0?'− ':'')+solesR(Math.abs(t.ganancia))):'')+
+      fila('Compraste', (t.compras>0?solesR(t.compras)+' · ':'')+fmt(t.comprasKg)+' kg')+
+      fila('Botaste', fmt(t.mermaKg)+' kg'+(t.merma>0?' · '+solesR(t.merma):''))+
+    '</div>'+lista+'</section>';
+
+  // Semana: hasta hoy si es la actual. Comparación con los mismos días de la semana anterior.
+  var hastaSem = S.resSemana===0 ? hoy : domingo;
+  var w = totales(lunes, hastaSem);
+  // Comparación justa: en la semana actual, solo días ya terminados (hoy recién empieza). El lunes compara el día de hoy.
+  var cmpHasta = (S.resSemana===0 && hastaSem>lunes) ? sumarDias(hoy,-1) : hastaSem;
+  var wc = totales(lunes, cmpHasta), prev = totales(sumarDias(lunes,-7), sumarDias(cmpHasta,-7));
+  var hastaAyer = cmpHasta!==hastaSem;
+  var pctM = (w.ventasKg+w.mermaKg)>0 ? w.mermaKg/(w.ventasKg+w.mermaKg)*100 : 0;
+  var semana = '<section class="card" style="display:grid;gap:8px" aria-label="Total de la semana"><b>'+(S.resSemana===0?'Esta semana, hasta hoy':'Toda la semana')+'</b>'+
+    '<div class="kv">'+
+      fila('Vendiste', w.hayPrecio ? solesR(w.ventas) : fmt(w.ventasKg)+' kg')+
+      (w.hayPrecio?fila('Ganancia aprox.', '<span'+(w.ganancia<0?' style="color:var(--rojo)"':'')+'>'+(w.ganancia<0?'− ':'')+solesR(Math.abs(w.ganancia))+'</span>'):'')+
+      fila('Compraste', (w.compras>0?solesR(w.compras)+' · ':'')+fmt(w.comprasKg)+' kg')+
+      fila('Merma', '<span style="color:var(--rojo)">'+fmt(pctM)+' %</span> · '+fmt(w.mermaKg)+' kg')+
+    '</div>'+
+    (prev.n && wc.hayPrecio && prev.hayPrecio
+      ? '<p class="note" style="margin:0">'+(S.resSemana===0 ? (hastaAyer?'Hasta ayer':'Hoy')+' vendiste '+solesR(wc.ventas)+'; en los mismos días de la semana pasada, '+solesR(prev.ventas)+'.'
+          : 'La semana anterior vendiste '+solesR(prev.ventas)+'.')+' <b>'+(cambioTxt(wc.ventas, prev.ventas).replace(/[()]/g,'').trim()||'')+'</b></p>' : '')+
+    (w.hayPrecio ? '' : '<p class="note" style="margin:0">Pon tus precios de venta en Stock para ver soles y ganancia.</p>')+
+    '</section>';
+
+  // Más vendidos de la semana
+  var ids = Object.keys(w.porProd).sort(function(a,b){ return w.porProd[b]-w.porProd[a]; }).slice(0,3);
+  var maxP = ids.length ? w.porProd[ids[0]] : 1;
+  var bars = ids.length ? ids.map(function(id){
+    return '<div class="bar"><div class="lbl"><span>'+esc(nombreProd(id))+'</span><span>'+fmt(w.porProd[id])+' kg</span></div><div class="track"><div class="fill" style="width:'+Math.round(w.porProd[id]/maxP*100)+'%"></div></div></div>';
+  }).join('') : '<p class="note" style="margin:0">Sin ventas esta semana.</p>';
+  var kgRiesgo = 0; S.products.forEach(function(p){ if(p.estado==='merma') kgRiesgo += p.stock; });
+  var hayEj = S.mov.some(function(m){ return m.ej && m.d>=lunes && m.d<=domingo; });
+
+  return '<div><h1 class="h1">Resumen</h1><p class="sub">Tus ventas, ganancia y merma por día y por semana</p></div>'+
+    '<div class="row"><button class="btn ghost" type="button" data-act="sem-prev" aria-label="Semana anterior"'+(hayAntes?'':' disabled')+' style="min-width:48px;padding:0">◀</button>'+
+      '<b style="text-align:center">Semana del '+fechaTxt(lunes)+' al '+fechaTxt(domingo)+'</b>'+
+      '<button class="btn ghost" type="button" data-act="sem-next" aria-label="Semana siguiente"'+(S.resSemana>0?'':' disabled')+' style="min-width:48px;padding:0">▶</button></div>'+
+    tira+detalle+semana+
+    (kgRiesgo>0 && S.resSemana===0?'<div class="card note warn" style="margin:0">Hoy tienes '+fmt(kgRiesgo)+' kg marcados como merma en tu stock.</div>':'')+
+    '<section class="card"><b>Productos más vendidos de la semana</b><div class="bars">'+bars+'</div></section>'+
+    '<section class="cta"><span class="tagp">PILOTO SURQUILLO N°1</span><h3>Desbloquea el Plan Completo</h3><p>Accede a registro ilimitado de productos por solo S/ 20 al mes (IGV inc.).</p><button class="btn" type="button" data-act="plans">Ver planes y beneficios</button></section>'+
+    '<p class="note" style="margin:0">La ganancia es aproximada: no descuenta alquiler, transporte ni otros gastos.'+(w.usaRef?' Donde no dijiste a cuánto compraste, uso el precio mayorista de referencia.':'')+(hayEj?' Esta semana incluye datos de ejemplo.':'')+'</p>'+
+    '<button class="link" type="button" data-act="restart" style="align-self:center">Reiniciar demo (para el entrevistador)</button>';
+}
+
+function renderScreen(){
+  var keep = screenEl.scrollTop;
+  var views = {voz:viewVoz, stock:viewStock, comprar:viewComprar, resumen:viewResumen};
+  screenEl.innerHTML = views[S.tab]();
+  screenEl.scrollTop = keep;
+  guardarEstado();
+}
+
+/* ---------- Hoja "Esto entendí" ---------- */
+function necesitaPeso(sh){ return sh.cant!=null && sh.unidad && DICC.unidades[sh.unidad].kg==null; }
+function recalcHoja(sh){
+  if(necesitaPeso(sh)){
+    if(sh.prod && sh.peso===''){ var k = PESOS[sh.prod+'|'+sh.unidad]; if(k){ sh.peso = String(k); sh.pesoGuardado = true; } }
+    var pz = parseFloat(sh.peso);
+    if(pz>0){
+      sh.qty = String(redondear(sh.cant*pz));
+      if(sh.precioBruto!=null && sh.precioUnidad===sh.unidad) sh.precio = String(Math.round(sh.precioBruto/pz*100)/100);
+    }
+  }
+  var q = parseFloat(sh.qty);
+  if(sh.precioTotal!=null && q>0) sh.precio = String(Math.round(sh.precioTotal/q*100)/100);
+}
+function cantidadTxt(sh){
+  var q = parseFloat(sh.qty);
+  if(necesitaPeso(sh)) return fmt(sh.cant)+' '+unidadTxt(sh.unidad, sh.cant)+(q>0 ? ' = '+fmt(q)+' kg' : '');
+  return q>0 ? fmt(q)+' kg' : '';
+}
+// En una venta sin precio dicho, usa el precio de venta que el comerciante ya tiene guardado.
+function autoPrecio(sh){
+  if(sh.precioAuto){ sh.precio = ''; sh.precioAuto = false; }
+  var p = sh.prod && prod(sh.prod);
+  if(sh.tipo==='venta' && sh.precio==='' && sh.precioTotal==null && sh.precioBruto==null && p && p.precio!=null){
+    sh.precio = String(p.precio); sh.precioAuto = true;
+  }
+}
+function precioTxt(sh){
+  var pr = parseFloat(sh.precio);
+  if(pr>0) return soles(pr)+'/kg'+(sh.precioAuto?' (tu precio)':'');
+  if(sh.precioBruto!=null) return soles(sh.precioBruto)+' por '+unidadTxt(sh.precioUnidad,1);
+  if(sh.precioTotal!=null) return soles(sh.precioTotal)+' en total';
+  return '';
+}
+
+function abrirHoja(opciones, fuente){
+  if(typeof opciones==='string') opciones = [opciones];
+  var mejor = null, rMejor = null;
+  opciones.forEach(function(o){ var r = interpretar(o); if(!rMejor || puntaje(r)>puntaje(rMejor)){ rMejor = r; mejor = o; } });
+  var r = rMejor;
+  var sh = {texto:mejor, tipo:r.tipo, prod:r.prod, cant:r.cant, unidad:r.unidad,
+    qty: r.kg!=null ? String(r.kg) : '', precio: r.precio!=null ? String(r.precio) : '',
+    precioBruto:r.precioBruto, precioUnidad:r.precioUnidad, precioTotal:r.precioTotal,
+    peso: r.pesoDicho ? String(r.pesoDicho) : '', pesoGuardado:false,
+    notas:r.notas.slice(), editing:false, err:'', r:r, logId:null};
+  recalcHoja(sh);
+  autoPrecio(sh);
+  if(!r.tipo || !r.prod || r.cant==null) sh.editing = true;
+  if(fuente!=='rapida'){
+    var e = {id:Date.now()+'-'+Math.floor(Math.random()*1000), fecha:new Date().toISOString(), fuente:fuente, texto:mejor,
+      resultado:r.resultado, faltan:r.faltan.join(', '),
+      alternativas:opciones.filter(function(o){ return o!==mejor; }),
+      entendido:{tipo:r.tipo, prod:r.prod, cant:r.cant, unidad:r.unidad, kg:r.kg, precio:r.precio},
+      estado:'pendiente'};
+    FR.unshift(e); if(FR.length>1000) FR.length = 1000; guardarFrases();
+    sh.logId = e.id;
+  }
+  S.sheet = sh;
+  renderScreen(); renderLayer();
+}
+function marcarFrase(id, cambios){
+  for(var i=0;i<FR.length;i++){ if(FR[i].id===id){ for(var k in cambios) FR[i][k] = cambios[k]; guardarFrases(); return; } }
+}
+function cancelarHoja(){
+  if(S.sheet && S.sheet.logId) marcarFrase(S.sheet.logId, {estado:'descartado'});
+  S.sheet = null; renderLayer();
+  if(S.tab==='voz' && S.frasesOpen) renderScreen();
+}
+
+// Ayuda bajo el precio. Venta: avisa si se usó su precio guardado. Compra: su precio de venta y la referencia mayorista.
+function ayudaCompra(sh){
+  if(sh.tipo==='venta' && sh.precioAuto && sh.editing) return '<p class="note" style="margin:0">Puse tu precio de venta guardado. Cámbialo si hoy vendes a otro precio.</p>';
+  if(sh.tipo!=='compra' || !sh.prod) return '';
+  var p = prod(sh.prod), out = [];
+  out.push(p && p.precio!=null ? 'Tu precio de venta: <b>'+soles(p.precio)+'/kg</b> (no cambia con la compra).' : 'Aún no tienes precio de venta para este producto.');
+  if(REF_PRECIOS[sh.prod]) out.push('Mayorista de referencia: '+refTxt(sh.prod));
+  return '<div class="note" style="display:grid;gap:3px">'+out.map(function(x){ return '<div>'+x+'</div>'; }).join('')+'</div>';
+}
+function viewHoja(sh){
+  var p = sh.prod ? (prod(sh.prod) || CAT[sh.prod]) : null;
+  var falta = [];
+  if(!sh.tipo) falta.push('el movimiento'); if(!p) falta.push('el producto'); if(sh.cant==null && !(parseFloat(sh.qty)>0)) falta.push('la cantidad');
+  var notas = sh.notas.slice();
+  if(falta.length) notas.unshift('No entendí '+falta.join(', ')+'. Complétalo abajo.');
+  if(p && !prod(sh.prod)) notas.push(p.nombre+' no está en tus productos: se agregará al confirmar'+(limiteLleno()?' (el plan gratuito permite '+LIMITE_GRATIS+').':'.'));
+  var apTxt = aprendizajeTxt(aprendizaje(sh), sh);
+  var aprende = apTxt ? '<p class="note" style="margin:0">Al confirmar voy a recordar: <b>'+esc(apTxt)+'</b>.</p>' : '';
+  var body;
+  if(sh.editing){
+    var tOpts = (sh.tipo?'':'<option value="" selected disabled>Elige…</option>')+['venta','compra','merma'].map(function(t){return '<option value="'+t+'"'+(sh.tipo===t?' selected':'')+'>'+TIPO[t]+'</option>';}).join('');
+    var pOpts = (p?'':'<option value="" selected disabled>Elige…</option>')+opcionesCatalogo(sh.prod, false);
+    body = '<div class="form">'+
+      '<div class="two"><div><label for="s-tipo">Movimiento</label><select id="s-tipo" class="field'+(sh.tipo?'':' miss')+'" data-s="tipo">'+tOpts+'</select></div>'+
+      '<div><label for="s-prod">Producto</label><select id="s-prod" class="field'+(p?'':' miss')+'" data-s="prod">'+pOpts+'</select></div></div>'+
+      '<div class="two"><div><label for="s-qty">Cantidad (kg)</label><input id="s-qty" class="field'+(parseFloat(sh.qty)>0?'':' miss')+'" data-s="qty" type="number" inputmode="decimal" min="0" step="0.5" value="'+esc(sh.qty)+'"></div>'+
+      '<div><label for="s-precio">'+(sh.tipo==='compra'?'Precio de compra por kilo (S/)':'Precio de venta por kilo (S/)')+'</label><input id="s-precio" class="field" data-s="precio" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Opcional" value="'+esc(sh.precio)+'"></div></div>'+
+      '</div>';
+    body += ayudaCompra(sh);
+  } else {
+    var qt = cantidadTxt(sh), pt = precioTxt(sh);
+    body = '<div class="det four">'+
+      '<div><span>Movimiento</span><b'+(sh.tipo?'':' class="miss"')+'>'+(sh.tipo?TIPO[sh.tipo]:'¿?')+'</b></div>'+
+      '<div><span>Producto</span><b'+(p?'':' class="miss"')+'>'+(p?p.nombre:'¿?')+'</b></div>'+
+      '<div><span>Cantidad</span><b id="detQty"'+(qt?'':' class="miss"')+'>'+(qt||'¿?')+'</b></div>'+
+      (sh.tipo==='merma' ? '' : '<div><span>'+(sh.tipo==='compra'?'Precio de compra':'Precio de venta')+'</span><b id="detPrecio"'+(pt?'':' class="soft"')+'>'+(pt||'No dicho')+'</b></div>')+
+      '</div>';
+    body += ayudaCompra(sh);
+  }
+  var peso = '';
+  if(necesitaPeso(sh)){
+    var u1 = unidadTxt(sh.unidad,1);
+    peso = p
+      ? '<div class="peso"><label for="s-peso">¿Cuántos kilos pesa 1 '+u1+' de '+p.nombre.toLowerCase()+'?</label>'+
+        '<div class="two"><input id="s-peso" class="field'+(parseFloat(sh.peso)>0?'':' miss')+'" data-s="peso" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" value="'+esc(sh.peso)+'">'+
+        '<output id="pesoOut">'+(parseFloat(sh.qty)>0?'= '+fmt(parseFloat(sh.qty))+' kg':'')+'</output></div>'+
+        '<p class="note" style="margin:0">'+(sh.pesoGuardado?'Es lo que anotaste antes. Cámbialo si esta vez pesa distinto.':'Cada producto pesa distinto. Lo guardaremos para la próxima vez.')+'</p></div>'
+      : '<p class="note" style="margin:0">Elige el producto para saber cuánto pesa 1 '+u1+'.</p>';
+  }
+  return '<div class="layer sheet" data-close="sheet"><div class="sheet-body" role="dialog" aria-modal="true" aria-label="Confirmar registro">'+
+    '<div class="eyebrow">Esto entendí</div>'+
+    '<div class="heard">“'+esc(sh.texto)+'”</div>'+
+    (notas.length?'<div class="notas">'+notas.map(function(n){return '<div>'+esc(n)+'</div>';}).join('')+'</div>':'')+
+    body+peso+aprende+
+    (sh.err?'<p class="err" role="alert">'+esc(sh.err)+'</p>':'')+
+    '<div class="two">'+
+      '<button class="btn ghost" type="button" data-act="sheet-fix">'+(sh.editing?'Listo':'Corregir')+'</button>'+
+      '<button class="btn primary" type="button" data-act="sheet-ok" id="primaryBtn">Confirmar</button>'+
+    '</div>'+
+    '<button class="link" type="button" data-act="sheet-cancel" style="justify-self:center">Cancelar, no guardar</button>'+
+    '</div></div>';
+}
+function pintarPeso(){
+  var sh = S.sheet; if(!sh) return;
+  var q = parseFloat(sh.qty);
+  var o = document.getElementById('pesoOut'); if(o) o.textContent = q>0 ? '= '+fmt(q)+' kg' : '';
+  var i = document.getElementById('s-qty'); if(i) i.value = sh.qty;
+  var ip = document.getElementById('s-precio'); if(ip) ip.value = sh.precio;
+  var dq = document.getElementById('detQty'); if(dq){ var t = cantidadTxt(sh); dq.textContent = t||'¿?'; dq.className = t?'':'miss'; }
+  var dp = document.getElementById('detPrecio'); if(dp){ var t2 = precioTxt(sh); dp.textContent = t2||'No dicho'; dp.className = t2?'':'soft'; }
+  var ps = document.getElementById('s-peso'); if(ps) ps.classList.toggle('miss', !(parseFloat(sh.peso)>0));
+}
+
+function renderLayer(){
+  var h = '';
+  if(S.tests){
+    var ok = S.tests.filter(function(x){return x.ok;}).length;
+    h = '<div class="layer modal" data-close="tests"><div class="modal-body" role="dialog" aria-modal="true" aria-label="Pruebas del intérprete">'+
+      '<h2 style="margin:0;font-size:20px">Pruebas del intérprete</h2>'+
+      '<p class="note" style="margin:0"><b>'+ok+' de '+S.tests.length+'</b> frases se entienden como se espera.</p>'+
+      '<ul class="tests">'+S.tests.map(function(x){
+        return '<li class="'+(x.ok?'':'mal')+'"><b>'+(x.ok?'Bien':'Falla')+'</b> · “'+esc(x.frase)+'”'+(x.mal.length?'<small>'+esc(x.mal.join(' · '))+'</small>':'')+'</li>';
+      }).join('')+'</ul>'+
+      '<button class="btn primary full" type="button" data-act="tests-close" id="primaryBtn">Cerrar</button></div></div>';
+  } else if(S.aviso){
+    h = '<div class="layer modal" data-close="aviso"><div class="modal-body" role="dialog" aria-modal="true" aria-label="Aviso sobre el micrófono">'+
+      '<div style="width:56px;height:56px;border-radius:16px;background:var(--verde-100);display:grid;place-items:center;margin:0 auto">'+IC.mic('#2b7a58',28)+'</div>'+
+      '<h2 style="margin:0;font-size:20px">Antes de hablar</h2>'+
+      '<p style="margin:0;text-align:left">Para convertir tu voz en texto, Chrome envía el audio a <b>servidores de Google</b>.</p>'+
+      '<p style="margin:0;text-align:left">FrescoPlan guarda solo el texto de lo que dijiste, en este teléfono, para aprender cómo hablan los comerciantes.</p>'+
+      '<button class="btn primary full" type="button" data-act="aviso-ok" id="primaryBtn">Entendido, quiero hablar</button>'+
+      '<button class="btn ghost full" type="button" data-act="aviso-no">Prefiero escribir</button></div></div>';
+  } else if(S.sheet && !S.plans){
+    h = viewHoja(S.sheet);
+  } else if(S.plans){
+    var inner;
+    var aviso = S.limite && !S.trial ? '<div class="notas" style="text-align:left">Llegaste al límite del plan gratuito: '+LIMITE_GRATIS+' productos. Prueba el Plan Completo o quita un producto en Stock.</div>' : '';
+    if(S.trial){
+      inner = '<h2 style="margin:0;font-size:20px">Prueba activada</h2>'+
+        (S.limite && S.sheet ? '<p class="note" style="margin:0">Ya puedes agregar más productos. Toca <b>Confirmar</b> otra vez para guardar el registro.</p>' : '')+
+        '<div class="plan-box cur"><div class="head"><span>Plan Completo</span><span class="badge">30 DÍAS GRATIS</span></div>'+
+        '<ul><li>Productos ilimitados</li><li>Reportes semanales</li><li>Soporte por WhatsApp</li></ul></div>'+
+        '<p class="note" style="margin:0">Al terminar la prueba tú decides si contratas el plan por S/ 20 al mes o sigues con la versión gratuita.</p>'+
+        '<button class="btn primary full" type="button" data-act="plans-close" id="primaryBtn">Entendido</button>';
+    } else {
+      inner = aviso+'<div style="width:56px;height:56px;border-radius:16px;background:var(--verde-100);display:grid;place-items:center;margin:0 auto">'+IC.box('#2b7a58',28)+'</div>'+
+        '<div><h2 style="margin:0;font-size:20px">Plan FrescoPlan</h2><p class="note" style="margin:4px 0 0">Suscripción adaptada al puesto minorista</p></div>'+
+        '<div class="plan-box cur"><div class="head"><span>Plan actual:</span><span class="badge">GRATUITO</span></div>'+
+          '<ul><li>Límite: 5 productos clave</li><li>Registro por voz ilimitado</li><li>Cálculo transparente de compra</li></ul></div>'+
+        '<div class="plan-box"><div class="head"><span>Plan Completo</span><span class="price">S/ 20 <small>/mes</small></span></div>'+
+          '<p>Productos ilimitados, reportes semanales y soporte por WhatsApp. Incluye IGV.</p></div>'+
+        '<button class="btn primary full" type="button" data-act="trial" id="primaryBtn">Probar 30 días gratis</button>'+
+        '<button class="btn ghost full" type="button" data-act="plans-close">Cerrar</button>';
+    }
+    h = '<div class="layer modal" data-close="plans"><div class="modal-body" role="dialog" aria-modal="true" aria-label="Planes">'+inner+'</div></div>';
+  }
+  layerEl.innerHTML = h;
+  var pb = document.getElementById('primaryBtn');
+  if(pb){ try{ pb.focus({preventScroll:true}); }catch(e){} }
+}
+
+function renderAll(){ renderChrome(); renderScreen(); renderLayer(); }
+
+function toast(msg){
+  toastEl.textContent = msg; toastEl.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.hidden = true; }, 2600);
+}
+function hora(){
+  var d = new Date(); var h = String(d.getHours()).padStart(2,'0'), m = String(d.getMinutes()).padStart(2,'0');
+  return h+':'+m;
+}
+
+/* ---------- Reconocimiento de voz (Web Speech API) ---------- */
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+var VOZ_OK = !!SR && window.isSecureContext !== false;
+var rec = null;
+var ERR_VOZ = {
+  'not-allowed':'No hay permiso para usar el micrófono. Actívalo en el candado de la barra de direcciones, o escribe la frase abajo.',
+  'service-not-allowed':'Este navegador no deja usar el reconocimiento de voz. Escribe la frase abajo.',
+  'no-speech':'No te escuché. Acércate al celular y vuelve a tocar el micrófono.',
+  'audio-capture':'No se encontró un micrófono en este equipo.',
+  'network':'No se pudo conectar con el servicio de voz. Revisa tu internet y usa Google Chrome (otros navegadores, como el de VS Code o Brave, no lo permiten). Mientras, escribe la frase abajo.',
+  'language-not-supported':'Este navegador no reconoce español de Perú. Escribe la frase abajo.'
+};
+function pintarParcial(){ var el = document.getElementById('parcial'); if(el) el.textContent = S.parcial || '…'; }
+function empezarVoz(){
+  S.vozErr = ''; S.parcial = '';
+  var finales = [];
+  try{ rec = new SR(); }catch(e){ S.vozErr = 'No se pudo iniciar el micrófono. Escribe la frase abajo.'; renderScreen(); return; }
+  rec.lang = 'es-PE';
+  rec.interimResults = true;
+  rec.continuous = false;
+  rec.maxAlternatives = 5;
+  rec.onresult = function(ev){
+    var inter = '';
+    finales = [];
+    for(var i=0;i<ev.results.length;i++){
+      var res = ev.results[i];
+      if(res.isFinal){ var alts = []; for(var a=0;a<res.length;a++) alts.push(res[a].transcript.trim()); finales.push(alts); }
+      else inter += res[0].transcript;
+    }
+    S.parcial = (finales.map(function(x){return x[0];}).join(' ')+' '+inter).trim();
+    pintarParcial();
+  };
+  rec.onerror = function(ev){
+    S.vozErr = ev.error==='aborted' ? '' : (ERR_VOZ[ev.error] || 'No se pudo reconocer la voz. Escribe la frase abajo.');
+  };
+  rec.onend = function(){
+    rec = null; S.listening = false;
+    var opciones = [];
+    if(finales.length===1) opciones = finales[0].filter(function(x,i,arr){ return x && arr.indexOf(x)===i; });
+    else if(finales.length>1) opciones = [finales.map(function(x){return x[0];}).join(' ')];
+    else if(S.parcial) opciones = [S.parcial];
+    if(opciones.length){ S.parcial = ''; abrirHoja(opciones, 'voz'); }
+    else { if(!S.vozErr) S.vozErr = 'No te escuché. Toca el micrófono e intenta otra vez.'; renderScreen(); }
+  };
+  try{ rec.start(); S.listening = true; }
+  catch(e){ rec = null; S.vozErr = 'No se pudo iniciar el micrófono. Escribe la frase abajo.'; }
+  renderScreen();
+}
+function entenderEscrito(){
+  var t = (S.escrito||'').trim();
+  if(!t){ toast('Escribe una frase primero'); var i = document.getElementById('frase'); if(i) i.focus(); return; }
+  S.escrito = '';
+  abrirHoja(t, 'texto');
+}
+
+/* ---------- Lista de frases: exportar ---------- */
+function fechaISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function descargarCSV(){
+  var cols = ['fecha','hora','fuente','frase','resultado','faltaba','otras_opciones','entendido_movimiento','entendido_producto','entendido_cantidad','entendido_unidad','entendido_precio_kg','estado','guardado_movimiento','guardado_producto','guardado_kg','guardado_precio_kg','peso_unidad_kg','corregido','aprendido'];
+  var filas = FR.slice().reverse().map(function(e){
+    var d = new Date(e.fecha), en = e.entendido||{}, g = e.guardado||{};
+    return [fechaISO(d), String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'), e.fuente, e.texto, RES[e.resultado], e.faltan||'',
+      (e.alternativas||[]).join(' | '), en.tipo?TIPO[en.tipo]:'', en.prod?nombreProd(en.prod):'', en.cant!=null?en.cant:'', en.unidad||'', en.precio!=null?en.precio:'',
+      e.estado, g.tipo?TIPO[g.tipo]:'', g.prod?nombreProd(g.prod):'', g.kg!=null?g.kg:'', g.precio!=null?g.precio:'', g.peso!=null?g.peso:'',
+      e.estado==='guardado' ? (e.corregido?'sí':'no') : '', e.aprendido||''];
+  });
+  var csv = '﻿'+[cols].concat(filas).map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'frescoplan-frases-'+fechaISO(new Date())+'.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ---------- Acciones ---------- */
+function aplicar(tipo, id, qty, precio){
+  var p = prod(id);
+  var agotado = (tipo==='venta' && p.stock-qty<=0) ? 1 : 0;   // se quedó sin stock: la demanda real fue mayor
+  if(tipo==='venta'){ p.stock = Math.max(0, p.stock-qty); }
+  else if(tipo==='compra'){ p.stock += qty; if(p.estado!=='fresco'){ p.estado = 'fresco'; } }
+  else { p.stock = Math.max(0, p.stock-qty); }
+  delete S.ajustes[id];
+  if(precio>0 && tipo==='venta'){ p.precio = precio; p.precioEj = false; }
+  if(precio>0 && tipo==='compra'){ p.costo = precio; }
+  // Cada registro guarda su precio y su costo del momento, para que la ganancia no cambie si luego cambia el precio.
+  var m = {d:hoyStr(), h:hora(), tipo:tipo, prod:id, kg:qty, agotado:agotado};
+  if(tipo==='compra'){ m.costo = precio>0 ? precio : null; }
+  else { m.costo = costoActual(p); m.costoRef = !p.costo; if(tipo==='venta') m.precio = p.precio; }
+  S.mov.push(m);
+  var conPrecio = precio>0 && tipo!=='merma';
+  S.registros.unshift({tipo:tipo, texto:p.nombre+' · '+fmt(qty)+' kg'+(conPrecio?' · '+soles(precio)+'/kg':''), hora:hora(), ej:false});
+  toast(TIPO[tipo]+' registrada: '+fmt(qty)+' kg de '+p.nombre+(conPrecio?' a '+soles(precio):''));
+}
+
+function confirmarHoja(){
+  var sh = S.sheet; sh.err = '';
+  var qty = parseFloat(sh.qty), pz = parseFloat(sh.peso), pr = parseFloat(sh.precio);
+  if(!sh.tipo) sh.err = 'Elige el tipo de movimiento.';
+  else if(!sh.prod) sh.err = 'Elige el producto.';
+  else if(!(qty>0)) sh.err = (necesitaPeso(sh) && !(pz>0)) ? 'Escribe cuántos kilos pesa 1 '+unidadTxt(sh.unidad,1)+'.' : 'Escribe una cantidad mayor que 0.';
+  if(sh.err){ if(!(necesitaPeso(sh) && !(pz>0) && sh.tipo && sh.prod)) sh.editing = true; renderLayer(); return; }
+  if(!agregarProducto(sh.prod)) return;   // plan gratuito lleno: se muestran los planes y la hoja queda abierta
+  if(necesitaPeso(sh) && pz>0){ PESOS[sh.prod+'|'+sh.unidad] = pz; guardarLS(LS_PESOS, PESOS); }
+  var precio = (pr>0 && sh.tipo!=='merma') ? Math.round(pr*100)/100 : null;
+  var ap = aprendizaje(sh), apTxt = aprendizajeTxt(ap, sh);
+  if(ap.verbo) APRENDIDO.verbos[ap.verbo] = sh.tipo;
+  if(ap.alias) APRENDIDO.productos[ap.alias] = sh.prod;
+  if(apTxt) guardarLS(LS_APRENDIDO, APRENDIDO);
+  if(sh.logId && apTxt) marcarFrase(sh.logId, {aprendido:apTxt});
+  if(sh.logId){
+    var r = sh.r;
+    var corregido = (r.tipo && r.tipo!==sh.tipo) || (r.prod && r.prod!==sh.prod) ||
+      (r.kg!=null && Math.abs(r.kg-qty)>0.001) || (r.precio!=null && (precio==null || Math.abs(r.precio-precio)>0.001));
+    marcarFrase(sh.logId, {estado:'guardado', corregido:!!corregido,
+      guardado:{tipo:sh.tipo, prod:sh.prod, kg:redondear(qty), precio:precio, peso:necesitaPeso(sh)&&pz>0?pz:null}});
+  }
+  S.sheet = null; aplicar(sh.tipo, sh.prod, redondear(qty), precio); renderAll();
+  if(apTxt) toast(toastEl.textContent+' · Aprendí: '+apTxt);
+}
+
+function cerrarCapa(cual){
+  if(cual==='sheet') cancelarHoja();
+  else if(cual==='aviso'){ S.aviso = false; renderLayer(); }
+  else if(cual==='tests'){ S.tests = null; renderLayer(); }
+  else { S.plans = false; S.limite = false; renderLayer(); }
+}
+
+document.addEventListener('click', function(ev){
+  var layer = ev.target.closest('.layer');
+  if(layer && ev.target === layer){ cerrarCapa(layer.getAttribute('data-close')); return; }
+  var tabBtn = ev.target.closest('[data-tab]');
+  if(tabBtn){ S.tab = tabBtn.getAttribute('data-tab'); screenEl.scrollTop = 0; renderChrome(); renderScreen(); return; }
+  var el = ev.target.closest('[data-act]'); if(!el) return;
+  var act = el.getAttribute('data-act'), id = el.getAttribute('data-id');
+  var p = id ? prod(id) : null;
+
+  if(act==='mic'){
+    if(!VOZ_OK){ var fi = document.getElementById('frase'); if(fi) fi.focus(); }
+    else if(rec){ rec.stop(); }
+    else if(!AVISO_OK){ S.aviso = true; renderLayer(); }
+    else empezarVoz();
+  }
+  else if(act==='aviso-ok'){ AVISO_OK = true; guardarLS(LS_AVISO, true); S.aviso = false; renderLayer(); empezarVoz(); }
+  else if(act==='aviso-no'){ S.aviso = false; renderLayer(); var f2 = document.getElementById('frase'); if(f2) f2.focus(); }
+  else if(act==='escrito'){ entenderEscrito(); }
+  else if(act==='quick'){ abrirHoja(FRASES[Number(el.getAttribute('data-i'))], 'rapida'); }
+  else if(act==='frases-toggle'){ S.frasesOpen = !S.frasesOpen; renderScreen(); }
+  else if(act==='csv'){ descargarCSV(); }
+  else if(act==='olvidar'){
+    var g = el.getAttribute('data-g'), al = el.getAttribute('data-a');
+    if(APRENDIDO[g]){ delete APRENDIDO[g][al]; guardarLS(LS_APRENDIDO, APRENDIDO); renderScreen(); toast('Olvidé “'+al+'”'); }
+  }
+  else if(act==='frases-borrar'){
+    if(window.confirm('¿Borrar las '+FR.length+' frases guardadas? Descarga el CSV antes si las necesitas.')){ FR = []; guardarFrases(); renderScreen(); toast('Lista de frases borrada'); }
+  }
+  else if(act==='manual-save'){
+    var q = parseFloat(S.manual.qty), mp = parseFloat(S.manual.precio);
+    if(!prod(S.manual.prod)){ S.manualErr = 'Primero agrega un producto en Stock.'; renderScreen(); return; }
+    if(!(q>0)){ S.manualErr = 'Escribe una cantidad mayor que 0.'; renderScreen(); return; }
+    S.manualErr = ''; aplicar(S.manual.tipo, S.manual.prod, q, mp>0 ? Math.round(mp*100)/100 : null);
+    S.manual.qty = ''; S.manual.precio = ''; renderScreen();
+  }
+  else if(act==='estado'){
+    p.estado = el.getAttribute('data-e');
+    if(p.estado!=='fresco') S.estados.push({d:hoyStr(), prod:p.id, e:p.estado});   // señal para aprender la vida útil
+    renderScreen();
+  }
+  else if(act==='ir-precio'){ S.tab = 'stock'; S.precioEdit[id] = true; screenEl.scrollTop = 0; renderChrome(); renderScreen(); var ip2 = document.getElementById('pr-'+id); if(ip2){ ip2.scrollIntoView({block:'center'}); ip2.focus(); } }
+  else if(act==='precio-edit'){ S.precioEdit[id] = true; renderScreen(); var pi = document.getElementById('pr-'+id); if(pi) pi.focus(); }
+  else if(act==='precio-save'){
+    var v = parseFloat((document.getElementById('pr-'+id)||{}).value);
+    if(!(v>0)){ toast('Escribe un precio mayor que 0'); return; }
+    p.precio = Math.round(v*100)/100; p.precioEj = false; delete S.precioEdit[id]; renderScreen(); toast('Precio de '+p.nombre+': '+soles(p.precio)+'/kg');
+  }
+  else if(act==='dia'){ S.resDia = el.getAttribute('data-d'); renderScreen(); }
+  else if(act==='sem-prev'){ S.resSemana++; S.resDia = null; renderScreen(); }
+  else if(act==='sem-next'){ S.resSemana = Math.max(0, S.resSemana-1); S.resDia = null; renderScreen(); }
+  else if(act==='adj'){ S.adjOpen[id] = !S.adjOpen[id]; renderScreen(); }
+  else if(act==='plus'){ S.ajustes[id] = cantidadFinal(p)+1; renderScreen(); }
+  else if(act==='minus'){ S.ajustes[id] = Math.max(0, cantidadFinal(p)-1); renderScreen(); }
+  else if(act==='reset-adj'){ delete S.ajustes[id]; renderScreen(); }
+  else if(act==='sheet-fix'){ S.sheet.editing = !S.sheet.editing; S.sheet.err = ''; renderLayer(); }
+  else if(act==='sheet-ok'){ confirmarHoja(); }
+  else if(act==='sheet-cancel'){ cancelarHoja(); }
+  else if(act==='tests-close'){ S.tests = null; renderLayer(); }
+  else if(act==='plans'){ S.plans = true; renderLayer(); }
+  else if(act==='plans-close'){ S.plans = false; S.limite = false; renderLayer(); }
+  else if(act==='add-prod'){
+    var nid = S.agregar || (document.getElementById('addSel')||{}).value;
+    if(!nid){ toast('Elige una fruta o verdura'); return; }
+    if(agregarProducto(nid)){ S.agregar = ''; renderScreen(); toast(CAT[nid].nombre+' agregado a tus productos'); }
+  }
+  else if(act==='quitar'){
+    if(!window.confirm('¿Quitar '+p.nombre+' de tus productos? Se borra su stock y su historial en esta demo.')) return;
+    S.products = S.products.filter(function(x){ return x.id!==id; });
+    delete S.ajustes[id]; delete S.precioEdit[id];
+    if(S.manual.prod===id) S.manual.prod = S.products.length ? S.products[0].id : '';
+    renderScreen(); toast(p.nombre+' quitado');
+  }
+  else if(act==='trial'){ S.trial = true; renderChrome(); renderLayer(); }
+  else if(act==='restart'){
+    if(rec){ try{ rec.abort(); }catch(e){} }
+    resetState(); toastEl.hidden = true; renderAll(); toast('Demo reiniciada (la lista de frases se mantiene)');
+  }
+});
+
+document.addEventListener('change', function(ev){
+  var t = ev.target;
+  if(t.hasAttribute('data-add')){ S.agregar = t.value; }
+  if(t.hasAttribute('data-m')){
+    S.manual[t.getAttribute('data-m')] = t.value;
+    if(t.getAttribute('data-m')==='tipo' || t.getAttribute('data-m')==='prod') renderScreen();
+  }
+  if(t.hasAttribute('data-s') && S.sheet){
+    var k = t.getAttribute('data-s'), sh = S.sheet;
+    if(k==='tipo' || k==='prod'){
+      sh[k] = t.value;
+      if(k==='prod' && sh.pesoGuardado){ sh.peso = ''; sh.pesoGuardado = false; }
+      recalcHoja(sh); autoPrecio(sh); renderLayer();
+    }
+  }
+});
+document.addEventListener('input', function(ev){
+  var t = ev.target;
+  if(t.hasAttribute('data-m') && (t.getAttribute('data-m')==='qty' || t.getAttribute('data-m')==='precio')){ S.manual[t.getAttribute('data-m')] = t.value; }
+  if(t.hasAttribute('data-w')){ S.escrito = t.value; }
+  if(t.hasAttribute('data-s') && S.sheet){
+    var k = t.getAttribute('data-s'), sh = S.sheet;
+    if(k==='qty' || k==='precio'){ sh[k] = t.value; if(k==='precio'){ sh.precioTotal = null; sh.precioBruto = null; sh.precioAuto = false; } }
+    if(k==='peso'){ sh.peso = t.value; sh.pesoGuardado = false; recalcHoja(sh); pintarPeso(); }
+  }
+});
+document.addEventListener('keydown', function(ev){
+  if(ev.key==='Enter' && ev.target.id==='frase'){ ev.preventDefault(); entenderEscrito(); return; }
+  if(ev.key==='Escape'){
+    if(S.tests) cerrarCapa('tests');
+    else if(S.aviso) cerrarCapa('aviso');
+    else if(S.plans) cerrarCapa('plans');
+    else if(S.sheet) cerrarCapa('sheet');
+  }
+});
+
+renderAll();
+if(/(^|[?&])test(=|&|$)/.test(location.search.slice(1)) || location.hash==='#test'){ S.tests = correrPruebas(); renderLayer(); }
+</script>
+</body>
+</html>
